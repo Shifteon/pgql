@@ -1,3 +1,0 @@
-show average kills and damage
-for player "cody"
-where kills + 1 > damage + 2 and average damage > 2;
