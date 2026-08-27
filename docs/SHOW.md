@@ -1,5 +1,5 @@
 # The SHOW Clause
-The `SHOW` clause is always the first clause in a statement. It is where you specify what the result of your statement will show. You can specify measures, dimensions, and expressions. You can specify multiple by separating each with either `and` or `,`. Technically you can mix `and` and `,` in the clause, but that is considered bad style. Choose one for your statement and stick with it.
+The `SHOW` clause is always the first clause in a statement. It is where you specify what the result of your statement will show. You can specify measures, dimensions, and expressions. You can specify multiple by separating each with a comma: `,`.
 
 Additionally, you can utilize a sequential function. The only supported sequential function is `RUNNING`. Sequential functions alter the behavior of the whole statement. See the file on sequential functions for more info.
 
@@ -16,13 +16,13 @@ SHOW kills
 -- or
 SHOW damage
 -- or
-SHOW kills and damage
+SHOW kills, damage
 -- etc.
 ```
 In a coarse-grained statement, you can utilize aggregate functions such as `AVERAGE`, `TOTAL`, `MAX`, and `MIN` on a measure. If no aggregate function is specified for a measure in a coarse-grained statement, then `TOTAL` is implicitly used. The result of the statement will prepend the name of the aggregate function to the measure to form the column name. e.g. `Average Kills`. Aggregate functions can only be used on measure literals. For more info, see the file on aggregates.
 
 ```SQL
-SHOW AVERAGE DAMAGE AND TOTAL KILLS
+SHOW AVERAGE DAMAGE, TOTAL KILLS
 ```
 
 ## Dimensions

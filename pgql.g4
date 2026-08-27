@@ -2,28 +2,36 @@ grammar pgql;
 
 /* Parser rules */
 
-statement : showClause forClause byClause? whereClause? sortByClause? ';' ;
+statement : showClause forClause byClause? whereClause? sortByClause? EOF ;
 
 /* Clauses */
-showClause :  'show' showBody+ ;
-/* Should I support things like max and min in the show clause and just in general? */
-showBody : showFragment (('and' | ',') showFragment)* ;
-showFragment : showFunction? (measure | (expr 'as' STRING)) ;
-showFunction : RUNNING | AVERAGE | TOTAL | MIN | MAX ;
+showClause :  'show' sequentialFunction? showBody ;
+showBody : showFragment (COMMA showFragment)* ;
+showFragment : measure | aggregateFunction | (LPAREN (expr | predicate) RPAREN IDENTIFIER) ;
 
-forClause : 'for' dimension STRING;
-byClause : 'by' (dimension | GAME) (('and' | ',') (dimension | GAME))* ;
-whereClause :  'where' ((AVERAGE | TOTAL | MIN | MAX)* expr) (('and' | ',') (AVERAGE | TOTAL | MIN | MAX)* expr)* ;
-sortByClause : 'sort by' measure (DESC | ASC)* ;
+forClause : 'for' dimension IDENTIFIER;
+byClause : 'by' (dimension | GAME) (COMMA (dimension | GAME))* ;
+whereClause : 'where' predicate+ ;
+sortByClause : 'sort by' sortBody ;
+sortBody : measure (DESC | ASC)? (COMMA sortBody)* ;
 
 dimension : PLAYER | TEAM | DATE | TYPE | WIN ;
 measure : KILLS | DAMAGE | ASSISTS | RESCUES | RECALLS | WIN ;
+aggregateFunction : (AVERAGE | TOTAL | MAX | MIN) measure ;
+sequentialFunction : RUNNING ;
+logicalOperator : LOGICALAND | LOGICALOR ;
 
-expr : '(' expr+ ')'
-     | expr ('*' | '/') expr
-     | expr ('+' | '-') expr
-     | expr ('<' | '>' | '<=' | '>=') expr
-     | expr '=' expr
+predicate : LPAREN predicate+ RPAREN
+          | predicate logicalOperator predicate
+          | expr (LESSER | GREATER | LESSEREQUAL | GREATEREQUAL | EQUAL | NOTEQUAL) expr ;
+specificity : IDENTIFIER':'measure ;
+
+expr : LPAREN expr+ RPAREN
+     | expr (MULTIPLY | DIVIDE) expr
+     | expr (SUM | DIFFERENCE) expr
+     | aggregateFunction
+     | specificity
+     | IDENTIFIER
      | measure
      | NUMBER
      ;
@@ -54,6 +62,25 @@ TOTAL : 'total' ;
 MIN : 'min' ;
 MAX : 'max' ;
 
+/* Operators */
+LESSEREQUAL : '<=' ;
+GREATEREQUAL : '>=' ;
+GREATER : '>' ;
+LESSER : '<' ;
+EQUAL : '=' ;
+NOTEQUAL : '!=' ;
+SUM : '+' ;
+DIFFERENCE : '-' ;
+MULTIPLY : '*' ;
+DIVIDE : '/' ;
+
+LOGICALAND : 'and' ;
+LOGICALOR : 'or' ;
+
+LPAREN : '(' ;
+RPAREN : ')' ;
+COMMA : ',' ;
+
 /* primitives */
 STRING : '"' ~["\r\n]* '"' ;
 fragment INT : [0-9]+ ;
@@ -63,6 +90,7 @@ fragment FLOAT : [0-9]+ '.' [0-9]*
       | '.' [0-9]+ [eE] [+-]? [0-9]+
       ;
 NUMBER : INT | FLOAT ;
+IDENTIFIER : [a-zA-Z]+ ;
 
 /* Handle whitespace */
 WS : [ \t\r\n]+ -> skip ;

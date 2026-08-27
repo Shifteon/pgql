@@ -1,5 +1,5 @@
 # The BY Clause
-The `BY` clause is an optional clause that comes after the `FOR` clause. It allows you to adjust the grain of your statement by changing what the data is aggregated by. In other words, it makes the statement more specific. The possible values you can use here are `player`, `team`, and `game`. You can not use the value already used in your `FOR` clause. You can use multiple by separating them with `and` or `,`.
+The `BY` clause is an optional clause that comes after the `FOR` clause. It allows you to adjust the grain of your statement by changing what the data is aggregated by. In other words, it makes the statement more specific. The possible values you can use here are `player`, `team`, and `game`. You can not use the value already used in your `FOR` clause. You can use multiple by separating them with a comma: `,`.
 
 ## Being more specific
 The following statement has a low specificity, and thus it is coarse grained. All values will be aggregated.
@@ -22,7 +22,7 @@ We can make the statement fine-grained, where we operate at a single stat level 
 -- This statement operates at the game stat grain. This is as fine as it gets and the only level without aggregation
 SHOW assists
 FOR player "Ben"
-BY team and game
+BY team, game
 ```
 Now we will see the raw number of assists Ben got for each team for each game. That is going to be a lot of data. When working with a fine-grained statement you will likely want to use the `WHERE` clause to filter to only the data you want to see. More about the `WHERE` clause in its file.
 
