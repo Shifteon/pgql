@@ -10,7 +10,7 @@ showBody : showFragment (COMMA showFragment)* ;
 showFragment : measure | aggregateFunction | (LPAREN (expr | predicate) RPAREN IDENTIFIER) ;
 
 forClause : 'for' dimension IDENTIFIER;
-byClause : 'by' (dimension | GAME) (COMMA (dimension | GAME))* ;
+byClause : 'by' (dimension | GAME) (COMMA (dimension | GAME))? ;
 whereClause : 'where' predicate+ ;
 sortByClause : 'sort by' sortBody ;
 sortBody : measure (DESC | ASC)? (COMMA sortBody)* ;

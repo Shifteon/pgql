@@ -33,82 +33,104 @@ var PgqlParserStaticData struct {
 func pgqlParserInit() {
 	staticData := &PgqlParserStaticData
 	staticData.LiteralNames = []string{
-		"", "';'", "'show'", "'and'", "','", "'as'", "'for'", "'by'", "'where'",
-		"'sort by'", "'('", "')'", "'*'", "'/'", "'+'", "'-'", "'<'", "'>'",
-		"'<='", "'>='", "'='", "'player'", "'team'", "'date'", "'type'", "'kills'",
-		"'damage'", "'assists'", "'rescues'", "'recalls'", "'win'", "'game'",
-		"'desc'", "'asc'", "'running'", "'average'", "'total'", "'min'", "'max'",
+		"", "'show'", "'for'", "'by'", "'where'", "'sort by'", "':'", "'player'",
+		"'team'", "'date'", "'type'", "'kills'", "'damage'", "'assists'", "'rescues'",
+		"'recalls'", "'win'", "'game'", "'desc'", "'asc'", "'running'", "'average'",
+		"'total'", "'min'", "'max'", "'<='", "'>='", "'>'", "'<'", "'='", "'!='",
+		"'+'", "'-'", "'*'", "'/'", "'and'", "'or'", "'('", "')'", "','",
 	}
 	staticData.SymbolicNames = []string{
-		"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-		"", "", "", "", "PLAYER", "TEAM", "DATE", "TYPE", "KILLS", "DAMAGE",
-		"ASSISTS", "RESCUES", "RECALLS", "WIN", "GAME", "DESC", "ASC", "RUNNING",
-		"AVERAGE", "TOTAL", "MIN", "MAX", "STRING", "NUMBER", "WS",
+		"", "", "", "", "", "", "", "PLAYER", "TEAM", "DATE", "TYPE", "KILLS",
+		"DAMAGE", "ASSISTS", "RESCUES", "RECALLS", "WIN", "GAME", "DESC", "ASC",
+		"RUNNING", "AVERAGE", "TOTAL", "MIN", "MAX", "LESSEREQUAL", "GREATEREQUAL",
+		"GREATER", "LESSER", "EQUAL", "NOTEQUAL", "SUM", "DIFFERENCE", "MULTIPLY",
+		"DIVIDE", "LOGICALAND", "LOGICALOR", "LPAREN", "RPAREN", "COMMA", "STRING",
+		"NUMBER", "IDENTIFIER", "WS",
 	}
 	staticData.RuleNames = []string{
-		"statement", "showClause", "showBody", "showFragment", "showFunction",
-		"forClause", "byClause", "whereClause", "sortByClause", "dimension",
-		"measure", "expr",
+		"statement", "showClause", "showBody", "showFragment", "forClause",
+		"byClause", "whereClause", "sortByClause", "sortBody", "dimension",
+		"measure", "aggregateFunction", "sequentialFunction", "logicalOperator",
+		"predicate", "specificity", "expr",
 	}
 	staticData.PredictionContextCache = antlr.NewPredictionContextCache()
 	staticData.serializedATN = []int32{
-		4, 1, 41, 131, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
+		4, 1, 43, 176, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
 		4, 2, 5, 7, 5, 2, 6, 7, 6, 2, 7, 7, 7, 2, 8, 7, 8, 2, 9, 7, 9, 2, 10, 7,
-		10, 2, 11, 7, 11, 1, 0, 1, 0, 1, 0, 3, 0, 28, 8, 0, 1, 0, 3, 0, 31, 8,
-		0, 1, 0, 3, 0, 34, 8, 0, 1, 0, 1, 0, 1, 1, 1, 1, 4, 1, 40, 8, 1, 11, 1,
-		12, 1, 41, 1, 2, 1, 2, 1, 2, 5, 2, 47, 8, 2, 10, 2, 12, 2, 50, 9, 2, 1,
-		3, 3, 3, 53, 8, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 3, 3, 60, 8, 3, 1, 4,
-		1, 4, 1, 5, 1, 5, 1, 5, 1, 5, 1, 6, 1, 6, 1, 6, 3, 6, 71, 8, 6, 1, 6, 1,
-		6, 1, 6, 3, 6, 76, 8, 6, 5, 6, 78, 8, 6, 10, 6, 12, 6, 81, 9, 6, 1, 7,
-		1, 7, 4, 7, 85, 8, 7, 11, 7, 12, 7, 86, 1, 8, 1, 8, 1, 8, 5, 8, 92, 8,
-		8, 10, 8, 12, 8, 95, 9, 8, 1, 9, 1, 9, 1, 10, 1, 10, 1, 11, 1, 11, 1, 11,
-		4, 11, 104, 8, 11, 11, 11, 12, 11, 105, 1, 11, 1, 11, 1, 11, 1, 11, 3,
-		11, 112, 8, 11, 1, 11, 1, 11, 1, 11, 1, 11, 1, 11, 1, 11, 1, 11, 1, 11,
-		1, 11, 1, 11, 1, 11, 1, 11, 5, 11, 126, 8, 11, 10, 11, 12, 11, 129, 9,
-		11, 1, 11, 0, 1, 22, 12, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 0,
-		8, 1, 0, 3, 4, 1, 0, 34, 38, 1, 0, 32, 33, 2, 0, 21, 24, 30, 30, 1, 0,
-		25, 30, 1, 0, 12, 13, 1, 0, 14, 15, 1, 0, 16, 19, 137, 0, 24, 1, 0, 0,
-		0, 2, 37, 1, 0, 0, 0, 4, 43, 1, 0, 0, 0, 6, 52, 1, 0, 0, 0, 8, 61, 1, 0,
-		0, 0, 10, 63, 1, 0, 0, 0, 12, 67, 1, 0, 0, 0, 14, 82, 1, 0, 0, 0, 16, 88,
-		1, 0, 0, 0, 18, 96, 1, 0, 0, 0, 20, 98, 1, 0, 0, 0, 22, 111, 1, 0, 0, 0,
-		24, 25, 3, 2, 1, 0, 25, 27, 3, 10, 5, 0, 26, 28, 3, 12, 6, 0, 27, 26, 1,
-		0, 0, 0, 27, 28, 1, 0, 0, 0, 28, 30, 1, 0, 0, 0, 29, 31, 3, 14, 7, 0, 30,
-		29, 1, 0, 0, 0, 30, 31, 1, 0, 0, 0, 31, 33, 1, 0, 0, 0, 32, 34, 3, 16,
-		8, 0, 33, 32, 1, 0, 0, 0, 33, 34, 1, 0, 0, 0, 34, 35, 1, 0, 0, 0, 35, 36,
-		5, 1, 0, 0, 36, 1, 1, 0, 0, 0, 37, 39, 5, 2, 0, 0, 38, 40, 3, 4, 2, 0,
-		39, 38, 1, 0, 0, 0, 40, 41, 1, 0, 0, 0, 41, 39, 1, 0, 0, 0, 41, 42, 1,
-		0, 0, 0, 42, 3, 1, 0, 0, 0, 43, 48, 3, 6, 3, 0, 44, 45, 7, 0, 0, 0, 45,
-		47, 3, 6, 3, 0, 46, 44, 1, 0, 0, 0, 47, 50, 1, 0, 0, 0, 48, 46, 1, 0, 0,
-		0, 48, 49, 1, 0, 0, 0, 49, 5, 1, 0, 0, 0, 50, 48, 1, 0, 0, 0, 51, 53, 3,
-		8, 4, 0, 52, 51, 1, 0, 0, 0, 52, 53, 1, 0, 0, 0, 53, 59, 1, 0, 0, 0, 54,
-		60, 3, 20, 10, 0, 55, 56, 3, 22, 11, 0, 56, 57, 5, 5, 0, 0, 57, 58, 5,
-		39, 0, 0, 58, 60, 1, 0, 0, 0, 59, 54, 1, 0, 0, 0, 59, 55, 1, 0, 0, 0, 60,
-		7, 1, 0, 0, 0, 61, 62, 7, 1, 0, 0, 62, 9, 1, 0, 0, 0, 63, 64, 5, 6, 0,
-		0, 64, 65, 3, 18, 9, 0, 65, 66, 5, 39, 0, 0, 66, 11, 1, 0, 0, 0, 67, 70,
-		5, 7, 0, 0, 68, 71, 3, 18, 9, 0, 69, 71, 5, 31, 0, 0, 70, 68, 1, 0, 0,
-		0, 70, 69, 1, 0, 0, 0, 71, 79, 1, 0, 0, 0, 72, 75, 7, 0, 0, 0, 73, 76,
-		3, 18, 9, 0, 74, 76, 5, 31, 0, 0, 75, 73, 1, 0, 0, 0, 75, 74, 1, 0, 0,
-		0, 76, 78, 1, 0, 0, 0, 77, 72, 1, 0, 0, 0, 78, 81, 1, 0, 0, 0, 79, 77,
-		1, 0, 0, 0, 79, 80, 1, 0, 0, 0, 80, 13, 1, 0, 0, 0, 81, 79, 1, 0, 0, 0,
-		82, 84, 5, 8, 0, 0, 83, 85, 3, 22, 11, 0, 84, 83, 1, 0, 0, 0, 85, 86, 1,
-		0, 0, 0, 86, 84, 1, 0, 0, 0, 86, 87, 1, 0, 0, 0, 87, 15, 1, 0, 0, 0, 88,
-		89, 5, 9, 0, 0, 89, 93, 3, 20, 10, 0, 90, 92, 7, 2, 0, 0, 91, 90, 1, 0,
-		0, 0, 92, 95, 1, 0, 0, 0, 93, 91, 1, 0, 0, 0, 93, 94, 1, 0, 0, 0, 94, 17,
-		1, 0, 0, 0, 95, 93, 1, 0, 0, 0, 96, 97, 7, 3, 0, 0, 97, 19, 1, 0, 0, 0,
-		98, 99, 7, 4, 0, 0, 99, 21, 1, 0, 0, 0, 100, 101, 6, 11, -1, 0, 101, 103,
-		5, 10, 0, 0, 102, 104, 3, 22, 11, 0, 103, 102, 1, 0, 0, 0, 104, 105, 1,
-		0, 0, 0, 105, 103, 1, 0, 0, 0, 105, 106, 1, 0, 0, 0, 106, 107, 1, 0, 0,
-		0, 107, 108, 5, 11, 0, 0, 108, 112, 1, 0, 0, 0, 109, 112, 3, 20, 10, 0,
-		110, 112, 5, 40, 0, 0, 111, 100, 1, 0, 0, 0, 111, 109, 1, 0, 0, 0, 111,
-		110, 1, 0, 0, 0, 112, 127, 1, 0, 0, 0, 113, 114, 10, 6, 0, 0, 114, 115,
-		7, 5, 0, 0, 115, 126, 3, 22, 11, 7, 116, 117, 10, 5, 0, 0, 117, 118, 7,
-		6, 0, 0, 118, 126, 3, 22, 11, 6, 119, 120, 10, 4, 0, 0, 120, 121, 7, 7,
-		0, 0, 121, 126, 3, 22, 11, 5, 122, 123, 10, 3, 0, 0, 123, 124, 5, 20, 0,
-		0, 124, 126, 3, 22, 11, 4, 125, 113, 1, 0, 0, 0, 125, 116, 1, 0, 0, 0,
-		125, 119, 1, 0, 0, 0, 125, 122, 1, 0, 0, 0, 126, 129, 1, 0, 0, 0, 127,
-		125, 1, 0, 0, 0, 127, 128, 1, 0, 0, 0, 128, 23, 1, 0, 0, 0, 129, 127, 1,
-		0, 0, 0, 16, 27, 30, 33, 41, 48, 52, 59, 70, 75, 79, 86, 93, 105, 111,
-		125, 127,
+		10, 2, 11, 7, 11, 2, 12, 7, 12, 2, 13, 7, 13, 2, 14, 7, 14, 2, 15, 7, 15,
+		2, 16, 7, 16, 1, 0, 1, 0, 1, 0, 3, 0, 38, 8, 0, 1, 0, 3, 0, 41, 8, 0, 1,
+		0, 3, 0, 44, 8, 0, 1, 0, 1, 0, 1, 1, 1, 1, 3, 1, 50, 8, 1, 1, 1, 1, 1,
+		1, 2, 1, 2, 1, 2, 5, 2, 57, 8, 2, 10, 2, 12, 2, 60, 9, 2, 1, 3, 1, 3, 1,
+		3, 1, 3, 1, 3, 3, 3, 67, 8, 3, 1, 3, 1, 3, 1, 3, 3, 3, 72, 8, 3, 1, 4,
+		1, 4, 1, 4, 1, 4, 1, 5, 1, 5, 1, 5, 3, 5, 81, 8, 5, 1, 5, 1, 5, 1, 5, 3,
+		5, 86, 8, 5, 3, 5, 88, 8, 5, 1, 6, 1, 6, 4, 6, 92, 8, 6, 11, 6, 12, 6,
+		93, 1, 7, 1, 7, 1, 7, 1, 8, 1, 8, 3, 8, 101, 8, 8, 1, 8, 1, 8, 5, 8, 105,
+		8, 8, 10, 8, 12, 8, 108, 9, 8, 1, 9, 1, 9, 1, 10, 1, 10, 1, 11, 1, 11,
+		1, 11, 1, 12, 1, 12, 1, 13, 1, 13, 1, 14, 1, 14, 1, 14, 4, 14, 124, 8,
+		14, 11, 14, 12, 14, 125, 1, 14, 1, 14, 1, 14, 1, 14, 1, 14, 1, 14, 3, 14,
+		134, 8, 14, 1, 14, 1, 14, 1, 14, 1, 14, 5, 14, 140, 8, 14, 10, 14, 12,
+		14, 143, 9, 14, 1, 15, 1, 15, 1, 15, 1, 15, 1, 16, 1, 16, 1, 16, 4, 16,
+		152, 8, 16, 11, 16, 12, 16, 153, 1, 16, 1, 16, 1, 16, 1, 16, 1, 16, 1,
+		16, 1, 16, 3, 16, 163, 8, 16, 1, 16, 1, 16, 1, 16, 1, 16, 1, 16, 1, 16,
+		5, 16, 171, 8, 16, 10, 16, 12, 16, 174, 9, 16, 1, 16, 0, 2, 28, 32, 17,
+		0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 0, 8, 1,
+		0, 18, 19, 2, 0, 7, 10, 16, 16, 1, 0, 11, 16, 1, 0, 21, 24, 1, 0, 35, 36,
+		1, 0, 25, 30, 1, 0, 33, 34, 1, 0, 31, 32, 183, 0, 34, 1, 0, 0, 0, 2, 47,
+		1, 0, 0, 0, 4, 53, 1, 0, 0, 0, 6, 71, 1, 0, 0, 0, 8, 73, 1, 0, 0, 0, 10,
+		77, 1, 0, 0, 0, 12, 89, 1, 0, 0, 0, 14, 95, 1, 0, 0, 0, 16, 98, 1, 0, 0,
+		0, 18, 109, 1, 0, 0, 0, 20, 111, 1, 0, 0, 0, 22, 113, 1, 0, 0, 0, 24, 116,
+		1, 0, 0, 0, 26, 118, 1, 0, 0, 0, 28, 133, 1, 0, 0, 0, 30, 144, 1, 0, 0,
+		0, 32, 162, 1, 0, 0, 0, 34, 35, 3, 2, 1, 0, 35, 37, 3, 8, 4, 0, 36, 38,
+		3, 10, 5, 0, 37, 36, 1, 0, 0, 0, 37, 38, 1, 0, 0, 0, 38, 40, 1, 0, 0, 0,
+		39, 41, 3, 12, 6, 0, 40, 39, 1, 0, 0, 0, 40, 41, 1, 0, 0, 0, 41, 43, 1,
+		0, 0, 0, 42, 44, 3, 14, 7, 0, 43, 42, 1, 0, 0, 0, 43, 44, 1, 0, 0, 0, 44,
+		45, 1, 0, 0, 0, 45, 46, 5, 0, 0, 1, 46, 1, 1, 0, 0, 0, 47, 49, 5, 1, 0,
+		0, 48, 50, 3, 24, 12, 0, 49, 48, 1, 0, 0, 0, 49, 50, 1, 0, 0, 0, 50, 51,
+		1, 0, 0, 0, 51, 52, 3, 4, 2, 0, 52, 3, 1, 0, 0, 0, 53, 58, 3, 6, 3, 0,
+		54, 55, 5, 39, 0, 0, 55, 57, 3, 6, 3, 0, 56, 54, 1, 0, 0, 0, 57, 60, 1,
+		0, 0, 0, 58, 56, 1, 0, 0, 0, 58, 59, 1, 0, 0, 0, 59, 5, 1, 0, 0, 0, 60,
+		58, 1, 0, 0, 0, 61, 72, 3, 20, 10, 0, 62, 72, 3, 22, 11, 0, 63, 66, 5,
+		37, 0, 0, 64, 67, 3, 32, 16, 0, 65, 67, 3, 28, 14, 0, 66, 64, 1, 0, 0,
+		0, 66, 65, 1, 0, 0, 0, 67, 68, 1, 0, 0, 0, 68, 69, 5, 38, 0, 0, 69, 70,
+		5, 42, 0, 0, 70, 72, 1, 0, 0, 0, 71, 61, 1, 0, 0, 0, 71, 62, 1, 0, 0, 0,
+		71, 63, 1, 0, 0, 0, 72, 7, 1, 0, 0, 0, 73, 74, 5, 2, 0, 0, 74, 75, 3, 18,
+		9, 0, 75, 76, 5, 42, 0, 0, 76, 9, 1, 0, 0, 0, 77, 80, 5, 3, 0, 0, 78, 81,
+		3, 18, 9, 0, 79, 81, 5, 17, 0, 0, 80, 78, 1, 0, 0, 0, 80, 79, 1, 0, 0,
+		0, 81, 87, 1, 0, 0, 0, 82, 85, 5, 39, 0, 0, 83, 86, 3, 18, 9, 0, 84, 86,
+		5, 17, 0, 0, 85, 83, 1, 0, 0, 0, 85, 84, 1, 0, 0, 0, 86, 88, 1, 0, 0, 0,
+		87, 82, 1, 0, 0, 0, 87, 88, 1, 0, 0, 0, 88, 11, 1, 0, 0, 0, 89, 91, 5,
+		4, 0, 0, 90, 92, 3, 28, 14, 0, 91, 90, 1, 0, 0, 0, 92, 93, 1, 0, 0, 0,
+		93, 91, 1, 0, 0, 0, 93, 94, 1, 0, 0, 0, 94, 13, 1, 0, 0, 0, 95, 96, 5,
+		5, 0, 0, 96, 97, 3, 16, 8, 0, 97, 15, 1, 0, 0, 0, 98, 100, 3, 20, 10, 0,
+		99, 101, 7, 0, 0, 0, 100, 99, 1, 0, 0, 0, 100, 101, 1, 0, 0, 0, 101, 106,
+		1, 0, 0, 0, 102, 103, 5, 39, 0, 0, 103, 105, 3, 16, 8, 0, 104, 102, 1,
+		0, 0, 0, 105, 108, 1, 0, 0, 0, 106, 104, 1, 0, 0, 0, 106, 107, 1, 0, 0,
+		0, 107, 17, 1, 0, 0, 0, 108, 106, 1, 0, 0, 0, 109, 110, 7, 1, 0, 0, 110,
+		19, 1, 0, 0, 0, 111, 112, 7, 2, 0, 0, 112, 21, 1, 0, 0, 0, 113, 114, 7,
+		3, 0, 0, 114, 115, 3, 20, 10, 0, 115, 23, 1, 0, 0, 0, 116, 117, 5, 20,
+		0, 0, 117, 25, 1, 0, 0, 0, 118, 119, 7, 4, 0, 0, 119, 27, 1, 0, 0, 0, 120,
+		121, 6, 14, -1, 0, 121, 123, 5, 37, 0, 0, 122, 124, 3, 28, 14, 0, 123,
+		122, 1, 0, 0, 0, 124, 125, 1, 0, 0, 0, 125, 123, 1, 0, 0, 0, 125, 126,
+		1, 0, 0, 0, 126, 127, 1, 0, 0, 0, 127, 128, 5, 38, 0, 0, 128, 134, 1, 0,
+		0, 0, 129, 130, 3, 32, 16, 0, 130, 131, 7, 5, 0, 0, 131, 132, 3, 32, 16,
+		0, 132, 134, 1, 0, 0, 0, 133, 120, 1, 0, 0, 0, 133, 129, 1, 0, 0, 0, 134,
+		141, 1, 0, 0, 0, 135, 136, 10, 2, 0, 0, 136, 137, 3, 26, 13, 0, 137, 138,
+		3, 28, 14, 3, 138, 140, 1, 0, 0, 0, 139, 135, 1, 0, 0, 0, 140, 143, 1,
+		0, 0, 0, 141, 139, 1, 0, 0, 0, 141, 142, 1, 0, 0, 0, 142, 29, 1, 0, 0,
+		0, 143, 141, 1, 0, 0, 0, 144, 145, 5, 42, 0, 0, 145, 146, 5, 6, 0, 0, 146,
+		147, 3, 20, 10, 0, 147, 31, 1, 0, 0, 0, 148, 149, 6, 16, -1, 0, 149, 151,
+		5, 37, 0, 0, 150, 152, 3, 32, 16, 0, 151, 150, 1, 0, 0, 0, 152, 153, 1,
+		0, 0, 0, 153, 151, 1, 0, 0, 0, 153, 154, 1, 0, 0, 0, 154, 155, 1, 0, 0,
+		0, 155, 156, 5, 38, 0, 0, 156, 163, 1, 0, 0, 0, 157, 163, 3, 22, 11, 0,
+		158, 163, 3, 30, 15, 0, 159, 163, 5, 42, 0, 0, 160, 163, 3, 20, 10, 0,
+		161, 163, 5, 41, 0, 0, 162, 148, 1, 0, 0, 0, 162, 157, 1, 0, 0, 0, 162,
+		158, 1, 0, 0, 0, 162, 159, 1, 0, 0, 0, 162, 160, 1, 0, 0, 0, 162, 161,
+		1, 0, 0, 0, 163, 172, 1, 0, 0, 0, 164, 165, 10, 7, 0, 0, 165, 166, 7, 6,
+		0, 0, 166, 171, 3, 32, 16, 8, 167, 168, 10, 6, 0, 0, 168, 169, 7, 7, 0,
+		0, 169, 171, 3, 32, 16, 7, 170, 164, 1, 0, 0, 0, 170, 167, 1, 0, 0, 0,
+		171, 174, 1, 0, 0, 0, 172, 170, 1, 0, 0, 0, 172, 173, 1, 0, 0, 0, 173,
+		33, 1, 0, 0, 0, 174, 172, 1, 0, 0, 0, 20, 37, 40, 43, 49, 58, 66, 71, 80,
+		85, 87, 93, 100, 106, 125, 133, 141, 153, 162, 170, 172,
 	}
 	deserializer := antlr.NewATNDeserializer(nil)
 	staticData.atn = deserializer.Deserialize(staticData.serializedATN)
@@ -146,64 +168,71 @@ func NewpgqlParser(input antlr.TokenStream) *pgqlParser {
 
 // pgqlParser tokens.
 const (
-	pgqlParserEOF     = antlr.TokenEOF
-	pgqlParserT__0    = 1
-	pgqlParserT__1    = 2
-	pgqlParserT__2    = 3
-	pgqlParserT__3    = 4
-	pgqlParserT__4    = 5
-	pgqlParserT__5    = 6
-	pgqlParserT__6    = 7
-	pgqlParserT__7    = 8
-	pgqlParserT__8    = 9
-	pgqlParserT__9    = 10
-	pgqlParserT__10   = 11
-	pgqlParserT__11   = 12
-	pgqlParserT__12   = 13
-	pgqlParserT__13   = 14
-	pgqlParserT__14   = 15
-	pgqlParserT__15   = 16
-	pgqlParserT__16   = 17
-	pgqlParserT__17   = 18
-	pgqlParserT__18   = 19
-	pgqlParserT__19   = 20
-	pgqlParserPLAYER  = 21
-	pgqlParserTEAM    = 22
-	pgqlParserDATE    = 23
-	pgqlParserTYPE    = 24
-	pgqlParserKILLS   = 25
-	pgqlParserDAMAGE  = 26
-	pgqlParserASSISTS = 27
-	pgqlParserRESCUES = 28
-	pgqlParserRECALLS = 29
-	pgqlParserWIN     = 30
-	pgqlParserGAME    = 31
-	pgqlParserDESC    = 32
-	pgqlParserASC     = 33
-	pgqlParserRUNNING = 34
-	pgqlParserAVERAGE = 35
-	pgqlParserTOTAL   = 36
-	pgqlParserMIN     = 37
-	pgqlParserMAX     = 38
-	pgqlParserSTRING  = 39
-	pgqlParserNUMBER  = 40
-	pgqlParserWS      = 41
+	pgqlParserEOF          = antlr.TokenEOF
+	pgqlParserT__0         = 1
+	pgqlParserT__1         = 2
+	pgqlParserT__2         = 3
+	pgqlParserT__3         = 4
+	pgqlParserT__4         = 5
+	pgqlParserT__5         = 6
+	pgqlParserPLAYER       = 7
+	pgqlParserTEAM         = 8
+	pgqlParserDATE         = 9
+	pgqlParserTYPE         = 10
+	pgqlParserKILLS        = 11
+	pgqlParserDAMAGE       = 12
+	pgqlParserASSISTS      = 13
+	pgqlParserRESCUES      = 14
+	pgqlParserRECALLS      = 15
+	pgqlParserWIN          = 16
+	pgqlParserGAME         = 17
+	pgqlParserDESC         = 18
+	pgqlParserASC          = 19
+	pgqlParserRUNNING      = 20
+	pgqlParserAVERAGE      = 21
+	pgqlParserTOTAL        = 22
+	pgqlParserMIN          = 23
+	pgqlParserMAX          = 24
+	pgqlParserLESSEREQUAL  = 25
+	pgqlParserGREATEREQUAL = 26
+	pgqlParserGREATER      = 27
+	pgqlParserLESSER       = 28
+	pgqlParserEQUAL        = 29
+	pgqlParserNOTEQUAL     = 30
+	pgqlParserSUM          = 31
+	pgqlParserDIFFERENCE   = 32
+	pgqlParserMULTIPLY     = 33
+	pgqlParserDIVIDE       = 34
+	pgqlParserLOGICALAND   = 35
+	pgqlParserLOGICALOR    = 36
+	pgqlParserLPAREN       = 37
+	pgqlParserRPAREN       = 38
+	pgqlParserCOMMA        = 39
+	pgqlParserSTRING       = 40
+	pgqlParserNUMBER       = 41
+	pgqlParserIDENTIFIER   = 42
+	pgqlParserWS           = 43
 )
 
 // pgqlParser rules.
 const (
-	pgqlParserRULE_statement    = 0
-	pgqlParserRULE_showClause   = 1
-	pgqlParserRULE_showBody     = 2
-	pgqlParserRULE_showFragment = 3
-	pgqlParserRULE_showFunction = 4
-	pgqlParserRULE_forClause    = 5
-	pgqlParserRULE_byClause     = 6
-	pgqlParserRULE_whereClause  = 7
-	pgqlParserRULE_sortByClause = 8
-	pgqlParserRULE_dimension    = 9
-	pgqlParserRULE_measure      = 10
-	pgqlParserRULE_expr         = 11
+	pgqlParserRULE_statement          = 0
+	pgqlParserRULE_showClause         = 1
+	pgqlParserRULE_showBody           = 2
+	pgqlParserRULE_showFragment       = 3
+	pgqlParserRULE_forClause          = 4
+	pgqlParserRULE_byClause           = 5
+	pgqlParserRULE_whereClause        = 6
+	pgqlParserRULE_sortByClause       = 7
+	pgqlParserRULE_sortBody           = 8
+	pgqlParserRULE_dimension          = 9
+	pgqlParserRULE_measure            = 10
+	pgqlParserRULE_aggregateFunction  = 11
+	pgqlParserRULE_sequentialFunction = 12
+	pgqlParserRULE_logicalOperator    = 13
+	pgqlParserRULE_predicate          = 14
+	pgqlParserRULE_specificity        = 15
+	pgqlParserRULE_expr               = 16
 )
 
 // IStatementContext is an interface to support dynamic dispatch.
@@ -216,6 +245,7 @@ type IStatementContext interface {
 	// Getter signatures
 	ShowClause() IShowClauseContext
 	ForClause() IForClauseContext
+	EOF() antlr.TerminalNode
 	ByClause() IByClauseContext
 	WhereClause() IWhereClauseContext
 	SortByClause() ISortByClauseContext
@@ -286,6 +316,10 @@ func (s *StatementContext) ForClause() IForClauseContext {
 	}
 
 	return t.(IForClauseContext)
+}
+
+func (s *StatementContext) EOF() antlr.TerminalNode {
+	return s.GetToken(pgqlParserEOF, 0)
 }
 
 func (s *StatementContext) ByClause() IByClauseContext {
@@ -361,58 +395,58 @@ func (p *pgqlParser) Statement() (localctx IStatementContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(24)
+		p.SetState(34)
 		p.ShowClause()
 	}
 	{
-		p.SetState(25)
+		p.SetState(35)
 		p.ForClause()
 	}
-	p.SetState(27)
+	p.SetState(37)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
 	}
 	_la = p.GetTokenStream().LA(1)
 
-	if _la == pgqlParserT__6 {
+	if _la == pgqlParserT__2 {
 		{
-			p.SetState(26)
+			p.SetState(36)
 			p.ByClause()
 		}
 
 	}
-	p.SetState(30)
+	p.SetState(40)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
 	}
 	_la = p.GetTokenStream().LA(1)
 
-	if _la == pgqlParserT__7 {
+	if _la == pgqlParserT__3 {
 		{
-			p.SetState(29)
+			p.SetState(39)
 			p.WhereClause()
 		}
 
 	}
-	p.SetState(33)
+	p.SetState(43)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
 	}
 	_la = p.GetTokenStream().LA(1)
 
-	if _la == pgqlParserT__8 {
+	if _la == pgqlParserT__4 {
 		{
-			p.SetState(32)
+			p.SetState(42)
 			p.SortByClause()
 		}
 
 	}
 	{
-		p.SetState(35)
-		p.Match(pgqlParserT__0)
+		p.SetState(45)
+		p.Match(pgqlParserEOF)
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
@@ -440,8 +474,8 @@ type IShowClauseContext interface {
 	GetParser() antlr.Parser
 
 	// Getter signatures
-	AllShowBody() []IShowBodyContext
-	ShowBody(i int) IShowBodyContext
+	ShowBody() IShowBodyContext
+	SequentialFunction() ISequentialFunctionContext
 
 	// IsShowClauseContext differentiates from other interfaces.
 	IsShowClauseContext()
@@ -479,37 +513,12 @@ func NewShowClauseContext(parser antlr.Parser, parent antlr.ParserRuleContext, i
 
 func (s *ShowClauseContext) GetParser() antlr.Parser { return s.parser }
 
-func (s *ShowClauseContext) AllShowBody() []IShowBodyContext {
-	children := s.GetChildren()
-	len := 0
-	for _, ctx := range children {
-		if _, ok := ctx.(IShowBodyContext); ok {
-			len++
-		}
-	}
-
-	tst := make([]IShowBodyContext, len)
-	i := 0
-	for _, ctx := range children {
-		if t, ok := ctx.(IShowBodyContext); ok {
-			tst[i] = t.(IShowBodyContext)
-			i++
-		}
-	}
-
-	return tst
-}
-
-func (s *ShowClauseContext) ShowBody(i int) IShowBodyContext {
+func (s *ShowClauseContext) ShowBody() IShowBodyContext {
 	var t antlr.RuleContext
-	j := 0
 	for _, ctx := range s.GetChildren() {
 		if _, ok := ctx.(IShowBodyContext); ok {
-			if j == i {
-				t = ctx.(antlr.RuleContext)
-				break
-			}
-			j++
+			t = ctx.(antlr.RuleContext)
+			break
 		}
 	}
 
@@ -518,6 +527,22 @@ func (s *ShowClauseContext) ShowBody(i int) IShowBodyContext {
 	}
 
 	return t.(IShowBodyContext)
+}
+
+func (s *ShowClauseContext) SequentialFunction() ISequentialFunctionContext {
+	var t antlr.RuleContext
+	for _, ctx := range s.GetChildren() {
+		if _, ok := ctx.(ISequentialFunctionContext); ok {
+			t = ctx.(antlr.RuleContext)
+			break
+		}
+	}
+
+	if t == nil {
+		return nil
+	}
+
+	return t.(ISequentialFunctionContext)
 }
 
 func (s *ShowClauseContext) GetRuleContext() antlr.RuleContext {
@@ -545,32 +570,30 @@ func (p *pgqlParser) ShowClause() (localctx IShowClauseContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(37)
-		p.Match(pgqlParserT__1)
+		p.SetState(47)
+		p.Match(pgqlParserT__0)
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
 		}
 	}
-	p.SetState(39)
+	p.SetState(49)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
 	}
 	_la = p.GetTokenStream().LA(1)
 
-	for ok := true; ok; ok = ((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&1634201502720) != 0) {
+	if _la == pgqlParserRUNNING {
 		{
-			p.SetState(38)
-			p.ShowBody()
+			p.SetState(48)
+			p.SequentialFunction()
 		}
 
-		p.SetState(41)
-		p.GetErrorHandler().Sync(p)
-		if p.HasError() {
-			goto errorExit
-		}
-		_la = p.GetTokenStream().LA(1)
+	}
+	{
+		p.SetState(51)
+		p.ShowBody()
 	}
 
 errorExit:
@@ -596,6 +619,8 @@ type IShowBodyContext interface {
 	// Getter signatures
 	AllShowFragment() []IShowFragmentContext
 	ShowFragment(i int) IShowFragmentContext
+	AllCOMMA() []antlr.TerminalNode
+	COMMA(i int) antlr.TerminalNode
 
 	// IsShowBodyContext differentiates from other interfaces.
 	IsShowBodyContext()
@@ -674,6 +699,14 @@ func (s *ShowBodyContext) ShowFragment(i int) IShowFragmentContext {
 	return t.(IShowFragmentContext)
 }
 
+func (s *ShowBodyContext) AllCOMMA() []antlr.TerminalNode {
+	return s.GetTokens(pgqlParserCOMMA)
+}
+
+func (s *ShowBodyContext) COMMA(i int) antlr.TerminalNode {
+	return s.GetToken(pgqlParserCOMMA, i)
+}
+
 func (s *ShowBodyContext) GetRuleContext() antlr.RuleContext {
 	return s
 }
@@ -699,34 +732,31 @@ func (p *pgqlParser) ShowBody() (localctx IShowBodyContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(43)
+		p.SetState(53)
 		p.ShowFragment()
 	}
-	p.SetState(48)
+	p.SetState(58)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
 	}
 	_la = p.GetTokenStream().LA(1)
 
-	for _la == pgqlParserT__2 || _la == pgqlParserT__3 {
+	for _la == pgqlParserCOMMA {
 		{
-			p.SetState(44)
-			_la = p.GetTokenStream().LA(1)
-
-			if !(_la == pgqlParserT__2 || _la == pgqlParserT__3) {
-				p.GetErrorHandler().RecoverInline(p)
-			} else {
-				p.GetErrorHandler().ReportMatch(p)
-				p.Consume()
+			p.SetState(54)
+			p.Match(pgqlParserCOMMA)
+			if p.HasError() {
+				// Recognition error - abort rule
+				goto errorExit
 			}
 		}
 		{
-			p.SetState(45)
+			p.SetState(55)
 			p.ShowFragment()
 		}
 
-		p.SetState(50)
+		p.SetState(60)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 			goto errorExit
@@ -756,9 +786,12 @@ type IShowFragmentContext interface {
 
 	// Getter signatures
 	Measure() IMeasureContext
-	ShowFunction() IShowFunctionContext
+	AggregateFunction() IAggregateFunctionContext
+	LPAREN() antlr.TerminalNode
+	RPAREN() antlr.TerminalNode
+	IDENTIFIER() antlr.TerminalNode
 	Expr() IExprContext
-	STRING() antlr.TerminalNode
+	Predicate() IPredicateContext
 
 	// IsShowFragmentContext differentiates from other interfaces.
 	IsShowFragmentContext()
@@ -812,10 +845,10 @@ func (s *ShowFragmentContext) Measure() IMeasureContext {
 	return t.(IMeasureContext)
 }
 
-func (s *ShowFragmentContext) ShowFunction() IShowFunctionContext {
+func (s *ShowFragmentContext) AggregateFunction() IAggregateFunctionContext {
 	var t antlr.RuleContext
 	for _, ctx := range s.GetChildren() {
-		if _, ok := ctx.(IShowFunctionContext); ok {
+		if _, ok := ctx.(IAggregateFunctionContext); ok {
 			t = ctx.(antlr.RuleContext)
 			break
 		}
@@ -825,7 +858,19 @@ func (s *ShowFragmentContext) ShowFunction() IShowFunctionContext {
 		return nil
 	}
 
-	return t.(IShowFunctionContext)
+	return t.(IAggregateFunctionContext)
+}
+
+func (s *ShowFragmentContext) LPAREN() antlr.TerminalNode {
+	return s.GetToken(pgqlParserLPAREN, 0)
+}
+
+func (s *ShowFragmentContext) RPAREN() antlr.TerminalNode {
+	return s.GetToken(pgqlParserRPAREN, 0)
+}
+
+func (s *ShowFragmentContext) IDENTIFIER() antlr.TerminalNode {
+	return s.GetToken(pgqlParserIDENTIFIER, 0)
 }
 
 func (s *ShowFragmentContext) Expr() IExprContext {
@@ -844,8 +889,20 @@ func (s *ShowFragmentContext) Expr() IExprContext {
 	return t.(IExprContext)
 }
 
-func (s *ShowFragmentContext) STRING() antlr.TerminalNode {
-	return s.GetToken(pgqlParserSTRING, 0)
+func (s *ShowFragmentContext) Predicate() IPredicateContext {
+	var t antlr.RuleContext
+	for _, ctx := range s.GetChildren() {
+		if _, ok := ctx.(IPredicateContext); ok {
+			t = ctx.(antlr.RuleContext)
+			break
+		}
+	}
+
+	if t == nil {
+		return nil
+	}
+
+	return t.(IPredicateContext)
 }
 
 func (s *ShowFragmentContext) GetRuleContext() antlr.RuleContext {
@@ -869,179 +926,79 @@ func (s *ShowFragmentContext) Accept(visitor antlr.ParseTreeVisitor) interface{}
 func (p *pgqlParser) ShowFragment() (localctx IShowFragmentContext) {
 	localctx = NewShowFragmentContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 6, pgqlParserRULE_showFragment)
-	var _la int
-
-	p.EnterOuterAlt(localctx, 1)
-	p.SetState(52)
-	p.GetErrorHandler().Sync(p)
-	if p.HasError() {
-		goto errorExit
-	}
-	_la = p.GetTokenStream().LA(1)
-
-	if (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&532575944704) != 0 {
-		{
-			p.SetState(51)
-			p.ShowFunction()
-		}
-
-	}
-	p.SetState(59)
+	p.SetState(71)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
 	}
 
-	switch p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 6, p.GetParserRuleContext()) {
-	case 1:
+	switch p.GetTokenStream().LA(1) {
+	case pgqlParserKILLS, pgqlParserDAMAGE, pgqlParserASSISTS, pgqlParserRESCUES, pgqlParserRECALLS, pgqlParserWIN:
+		p.EnterOuterAlt(localctx, 1)
 		{
-			p.SetState(54)
+			p.SetState(61)
 			p.Measure()
 		}
 
-	case 2:
+	case pgqlParserAVERAGE, pgqlParserTOTAL, pgqlParserMIN, pgqlParserMAX:
+		p.EnterOuterAlt(localctx, 2)
 		{
-			p.SetState(55)
-			p.expr(0)
+			p.SetState(62)
+			p.AggregateFunction()
+		}
+
+	case pgqlParserLPAREN:
+		p.EnterOuterAlt(localctx, 3)
+		{
+			p.SetState(63)
+			p.Match(pgqlParserLPAREN)
+			if p.HasError() {
+				// Recognition error - abort rule
+				goto errorExit
+			}
+		}
+		p.SetState(66)
+		p.GetErrorHandler().Sync(p)
+		if p.HasError() {
+			goto errorExit
+		}
+
+		switch p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 5, p.GetParserRuleContext()) {
+		case 1:
+			{
+				p.SetState(64)
+				p.expr(0)
+			}
+
+		case 2:
+			{
+				p.SetState(65)
+				p.predicate(0)
+			}
+
+		case antlr.ATNInvalidAltNumber:
+			goto errorExit
 		}
 		{
-			p.SetState(56)
-			p.Match(pgqlParserT__4)
+			p.SetState(68)
+			p.Match(pgqlParserRPAREN)
 			if p.HasError() {
 				// Recognition error - abort rule
 				goto errorExit
 			}
 		}
 		{
-			p.SetState(57)
-			p.Match(pgqlParserSTRING)
+			p.SetState(69)
+			p.Match(pgqlParserIDENTIFIER)
 			if p.HasError() {
 				// Recognition error - abort rule
 				goto errorExit
 			}
 		}
-
-	case antlr.ATNInvalidAltNumber:
-		goto errorExit
-	}
-
-errorExit:
-	if p.HasError() {
-		v := p.GetError()
-		localctx.SetException(v)
-		p.GetErrorHandler().ReportError(p, v)
-		p.GetErrorHandler().Recover(p, v)
-		p.SetError(nil)
-	}
-	p.ExitRule()
-	return localctx
-	goto errorExit // Trick to prevent compiler error if the label is not used
-}
-
-// IShowFunctionContext is an interface to support dynamic dispatch.
-type IShowFunctionContext interface {
-	antlr.ParserRuleContext
-
-	// GetParser returns the parser.
-	GetParser() antlr.Parser
-
-	// Getter signatures
-	RUNNING() antlr.TerminalNode
-	AVERAGE() antlr.TerminalNode
-	TOTAL() antlr.TerminalNode
-	MIN() antlr.TerminalNode
-	MAX() antlr.TerminalNode
-
-	// IsShowFunctionContext differentiates from other interfaces.
-	IsShowFunctionContext()
-}
-
-type ShowFunctionContext struct {
-	antlr.BaseParserRuleContext
-	parser antlr.Parser
-}
-
-func NewEmptyShowFunctionContext() *ShowFunctionContext {
-	var p = new(ShowFunctionContext)
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
-	p.RuleIndex = pgqlParserRULE_showFunction
-	return p
-}
-
-func InitEmptyShowFunctionContext(p *ShowFunctionContext) {
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
-	p.RuleIndex = pgqlParserRULE_showFunction
-}
-
-func (*ShowFunctionContext) IsShowFunctionContext() {}
-
-func NewShowFunctionContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ShowFunctionContext {
-	var p = new(ShowFunctionContext)
-
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
-
-	p.parser = parser
-	p.RuleIndex = pgqlParserRULE_showFunction
-
-	return p
-}
-
-func (s *ShowFunctionContext) GetParser() antlr.Parser { return s.parser }
-
-func (s *ShowFunctionContext) RUNNING() antlr.TerminalNode {
-	return s.GetToken(pgqlParserRUNNING, 0)
-}
-
-func (s *ShowFunctionContext) AVERAGE() antlr.TerminalNode {
-	return s.GetToken(pgqlParserAVERAGE, 0)
-}
-
-func (s *ShowFunctionContext) TOTAL() antlr.TerminalNode {
-	return s.GetToken(pgqlParserTOTAL, 0)
-}
-
-func (s *ShowFunctionContext) MIN() antlr.TerminalNode {
-	return s.GetToken(pgqlParserMIN, 0)
-}
-
-func (s *ShowFunctionContext) MAX() antlr.TerminalNode {
-	return s.GetToken(pgqlParserMAX, 0)
-}
-
-func (s *ShowFunctionContext) GetRuleContext() antlr.RuleContext {
-	return s
-}
-
-func (s *ShowFunctionContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) string {
-	return antlr.TreesStringTree(s, ruleNames, recog)
-}
-
-func (s *ShowFunctionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
-	switch t := visitor.(type) {
-	case pgqlVisitor:
-		return t.VisitShowFunction(s)
 
 	default:
-		return t.VisitChildren(s)
-	}
-}
-
-func (p *pgqlParser) ShowFunction() (localctx IShowFunctionContext) {
-	localctx = NewShowFunctionContext(p, p.GetParserRuleContext(), p.GetState())
-	p.EnterRule(localctx, 8, pgqlParserRULE_showFunction)
-	var _la int
-
-	p.EnterOuterAlt(localctx, 1)
-	{
-		p.SetState(61)
-		_la = p.GetTokenStream().LA(1)
-
-		if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&532575944704) != 0) {
-			p.GetErrorHandler().RecoverInline(p)
-		} else {
-			p.GetErrorHandler().ReportMatch(p)
-			p.Consume()
-		}
+		p.SetError(antlr.NewNoViableAltException(p, nil, nil, nil, nil, nil))
+		goto errorExit
 	}
 
 errorExit:
@@ -1066,7 +1023,7 @@ type IForClauseContext interface {
 
 	// Getter signatures
 	Dimension() IDimensionContext
-	STRING() antlr.TerminalNode
+	IDENTIFIER() antlr.TerminalNode
 
 	// IsForClauseContext differentiates from other interfaces.
 	IsForClauseContext()
@@ -1120,8 +1077,8 @@ func (s *ForClauseContext) Dimension() IDimensionContext {
 	return t.(IDimensionContext)
 }
 
-func (s *ForClauseContext) STRING() antlr.TerminalNode {
-	return s.GetToken(pgqlParserSTRING, 0)
+func (s *ForClauseContext) IDENTIFIER() antlr.TerminalNode {
+	return s.GetToken(pgqlParserIDENTIFIER, 0)
 }
 
 func (s *ForClauseContext) GetRuleContext() antlr.RuleContext {
@@ -1144,23 +1101,23 @@ func (s *ForClauseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 
 func (p *pgqlParser) ForClause() (localctx IForClauseContext) {
 	localctx = NewForClauseContext(p, p.GetParserRuleContext(), p.GetState())
-	p.EnterRule(localctx, 10, pgqlParserRULE_forClause)
+	p.EnterRule(localctx, 8, pgqlParserRULE_forClause)
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(63)
-		p.Match(pgqlParserT__5)
+		p.SetState(73)
+		p.Match(pgqlParserT__1)
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
 		}
 	}
 	{
-		p.SetState(64)
+		p.SetState(74)
 		p.Dimension()
 	}
 	{
-		p.SetState(65)
-		p.Match(pgqlParserSTRING)
+		p.SetState(75)
+		p.Match(pgqlParserIDENTIFIER)
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
@@ -1192,6 +1149,7 @@ type IByClauseContext interface {
 	Dimension(i int) IDimensionContext
 	AllGAME() []antlr.TerminalNode
 	GAME(i int) antlr.TerminalNode
+	COMMA() antlr.TerminalNode
 
 	// IsByClauseContext differentiates from other interfaces.
 	IsByClauseContext()
@@ -1278,6 +1236,10 @@ func (s *ByClauseContext) GAME(i int) antlr.TerminalNode {
 	return s.GetToken(pgqlParserGAME, i)
 }
 
+func (s *ByClauseContext) COMMA() antlr.TerminalNode {
+	return s.GetToken(pgqlParserCOMMA, 0)
+}
+
 func (s *ByClauseContext) GetRuleContext() antlr.RuleContext {
 	return s
 }
@@ -1298,19 +1260,19 @@ func (s *ByClauseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 
 func (p *pgqlParser) ByClause() (localctx IByClauseContext) {
 	localctx = NewByClauseContext(p, p.GetParserRuleContext(), p.GetState())
-	p.EnterRule(localctx, 12, pgqlParserRULE_byClause)
+	p.EnterRule(localctx, 10, pgqlParserRULE_byClause)
 	var _la int
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(67)
-		p.Match(pgqlParserT__6)
+		p.SetState(77)
+		p.Match(pgqlParserT__2)
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
 		}
 	}
-	p.SetState(70)
+	p.SetState(80)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -1319,13 +1281,13 @@ func (p *pgqlParser) ByClause() (localctx IByClauseContext) {
 	switch p.GetTokenStream().LA(1) {
 	case pgqlParserPLAYER, pgqlParserTEAM, pgqlParserDATE, pgqlParserTYPE, pgqlParserWIN:
 		{
-			p.SetState(68)
+			p.SetState(78)
 			p.Dimension()
 		}
 
 	case pgqlParserGAME:
 		{
-			p.SetState(69)
+			p.SetState(79)
 			p.Match(pgqlParserGAME)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -1337,26 +1299,23 @@ func (p *pgqlParser) ByClause() (localctx IByClauseContext) {
 		p.SetError(antlr.NewNoViableAltException(p, nil, nil, nil, nil, nil))
 		goto errorExit
 	}
-	p.SetState(79)
+	p.SetState(87)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
 	}
 	_la = p.GetTokenStream().LA(1)
 
-	for _la == pgqlParserT__2 || _la == pgqlParserT__3 {
+	if _la == pgqlParserCOMMA {
 		{
-			p.SetState(72)
-			_la = p.GetTokenStream().LA(1)
-
-			if !(_la == pgqlParserT__2 || _la == pgqlParserT__3) {
-				p.GetErrorHandler().RecoverInline(p)
-			} else {
-				p.GetErrorHandler().ReportMatch(p)
-				p.Consume()
+			p.SetState(82)
+			p.Match(pgqlParserCOMMA)
+			if p.HasError() {
+				// Recognition error - abort rule
+				goto errorExit
 			}
 		}
-		p.SetState(75)
+		p.SetState(85)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 			goto errorExit
@@ -1365,13 +1324,13 @@ func (p *pgqlParser) ByClause() (localctx IByClauseContext) {
 		switch p.GetTokenStream().LA(1) {
 		case pgqlParserPLAYER, pgqlParserTEAM, pgqlParserDATE, pgqlParserTYPE, pgqlParserWIN:
 			{
-				p.SetState(73)
+				p.SetState(83)
 				p.Dimension()
 			}
 
 		case pgqlParserGAME:
 			{
-				p.SetState(74)
+				p.SetState(84)
 				p.Match(pgqlParserGAME)
 				if p.HasError() {
 					// Recognition error - abort rule
@@ -1384,12 +1343,6 @@ func (p *pgqlParser) ByClause() (localctx IByClauseContext) {
 			goto errorExit
 		}
 
-		p.SetState(81)
-		p.GetErrorHandler().Sync(p)
-		if p.HasError() {
-			goto errorExit
-		}
-		_la = p.GetTokenStream().LA(1)
 	}
 
 errorExit:
@@ -1413,8 +1366,8 @@ type IWhereClauseContext interface {
 	GetParser() antlr.Parser
 
 	// Getter signatures
-	AllExpr() []IExprContext
-	Expr(i int) IExprContext
+	AllPredicate() []IPredicateContext
+	Predicate(i int) IPredicateContext
 
 	// IsWhereClauseContext differentiates from other interfaces.
 	IsWhereClauseContext()
@@ -1452,20 +1405,20 @@ func NewWhereClauseContext(parser antlr.Parser, parent antlr.ParserRuleContext, 
 
 func (s *WhereClauseContext) GetParser() antlr.Parser { return s.parser }
 
-func (s *WhereClauseContext) AllExpr() []IExprContext {
+func (s *WhereClauseContext) AllPredicate() []IPredicateContext {
 	children := s.GetChildren()
 	len := 0
 	for _, ctx := range children {
-		if _, ok := ctx.(IExprContext); ok {
+		if _, ok := ctx.(IPredicateContext); ok {
 			len++
 		}
 	}
 
-	tst := make([]IExprContext, len)
+	tst := make([]IPredicateContext, len)
 	i := 0
 	for _, ctx := range children {
-		if t, ok := ctx.(IExprContext); ok {
-			tst[i] = t.(IExprContext)
+		if t, ok := ctx.(IPredicateContext); ok {
+			tst[i] = t.(IPredicateContext)
 			i++
 		}
 	}
@@ -1473,11 +1426,11 @@ func (s *WhereClauseContext) AllExpr() []IExprContext {
 	return tst
 }
 
-func (s *WhereClauseContext) Expr(i int) IExprContext {
+func (s *WhereClauseContext) Predicate(i int) IPredicateContext {
 	var t antlr.RuleContext
 	j := 0
 	for _, ctx := range s.GetChildren() {
-		if _, ok := ctx.(IExprContext); ok {
+		if _, ok := ctx.(IPredicateContext); ok {
 			if j == i {
 				t = ctx.(antlr.RuleContext)
 				break
@@ -1490,7 +1443,7 @@ func (s *WhereClauseContext) Expr(i int) IExprContext {
 		return nil
 	}
 
-	return t.(IExprContext)
+	return t.(IPredicateContext)
 }
 
 func (s *WhereClauseContext) GetRuleContext() antlr.RuleContext {
@@ -1513,32 +1466,32 @@ func (s *WhereClauseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} 
 
 func (p *pgqlParser) WhereClause() (localctx IWhereClauseContext) {
 	localctx = NewWhereClauseContext(p, p.GetParserRuleContext(), p.GetState())
-	p.EnterRule(localctx, 14, pgqlParserRULE_whereClause)
+	p.EnterRule(localctx, 12, pgqlParserRULE_whereClause)
 	var _la int
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(82)
-		p.Match(pgqlParserT__7)
+		p.SetState(89)
+		p.Match(pgqlParserT__3)
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
 		}
 	}
-	p.SetState(84)
+	p.SetState(91)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
 	}
 	_la = p.GetTokenStream().LA(1)
 
-	for ok := true; ok; ok = ((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&1101625558016) != 0) {
+	for ok := true; ok; ok = ((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&6734540306432) != 0) {
 		{
-			p.SetState(83)
-			p.expr(0)
+			p.SetState(90)
+			p.predicate(0)
 		}
 
-		p.SetState(86)
+		p.SetState(93)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 			goto errorExit
@@ -1567,11 +1520,7 @@ type ISortByClauseContext interface {
 	GetParser() antlr.Parser
 
 	// Getter signatures
-	Measure() IMeasureContext
-	AllDESC() []antlr.TerminalNode
-	DESC(i int) antlr.TerminalNode
-	AllASC() []antlr.TerminalNode
-	ASC(i int) antlr.TerminalNode
+	SortBody() ISortBodyContext
 
 	// IsSortByClauseContext differentiates from other interfaces.
 	IsSortByClauseContext()
@@ -1609,10 +1558,10 @@ func NewSortByClauseContext(parser antlr.Parser, parent antlr.ParserRuleContext,
 
 func (s *SortByClauseContext) GetParser() antlr.Parser { return s.parser }
 
-func (s *SortByClauseContext) Measure() IMeasureContext {
+func (s *SortByClauseContext) SortBody() ISortBodyContext {
 	var t antlr.RuleContext
 	for _, ctx := range s.GetChildren() {
-		if _, ok := ctx.(IMeasureContext); ok {
+		if _, ok := ctx.(ISortBodyContext); ok {
 			t = ctx.(antlr.RuleContext)
 			break
 		}
@@ -1622,23 +1571,7 @@ func (s *SortByClauseContext) Measure() IMeasureContext {
 		return nil
 	}
 
-	return t.(IMeasureContext)
-}
-
-func (s *SortByClauseContext) AllDESC() []antlr.TerminalNode {
-	return s.GetTokens(pgqlParserDESC)
-}
-
-func (s *SortByClauseContext) DESC(i int) antlr.TerminalNode {
-	return s.GetToken(pgqlParserDESC, i)
-}
-
-func (s *SortByClauseContext) AllASC() []antlr.TerminalNode {
-	return s.GetTokens(pgqlParserASC)
-}
-
-func (s *SortByClauseContext) ASC(i int) antlr.TerminalNode {
-	return s.GetToken(pgqlParserASC, i)
+	return t.(ISortBodyContext)
 }
 
 func (s *SortByClauseContext) GetRuleContext() antlr.RuleContext {
@@ -1661,32 +1594,199 @@ func (s *SortByClauseContext) Accept(visitor antlr.ParseTreeVisitor) interface{}
 
 func (p *pgqlParser) SortByClause() (localctx ISortByClauseContext) {
 	localctx = NewSortByClauseContext(p, p.GetParserRuleContext(), p.GetState())
-	p.EnterRule(localctx, 16, pgqlParserRULE_sortByClause)
-	var _la int
-
+	p.EnterRule(localctx, 14, pgqlParserRULE_sortByClause)
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(88)
-		p.Match(pgqlParserT__8)
+		p.SetState(95)
+		p.Match(pgqlParserT__4)
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
 		}
 	}
 	{
-		p.SetState(89)
+		p.SetState(96)
+		p.SortBody()
+	}
+
+errorExit:
+	if p.HasError() {
+		v := p.GetError()
+		localctx.SetException(v)
+		p.GetErrorHandler().ReportError(p, v)
+		p.GetErrorHandler().Recover(p, v)
+		p.SetError(nil)
+	}
+	p.ExitRule()
+	return localctx
+	goto errorExit // Trick to prevent compiler error if the label is not used
+}
+
+// ISortBodyContext is an interface to support dynamic dispatch.
+type ISortBodyContext interface {
+	antlr.ParserRuleContext
+
+	// GetParser returns the parser.
+	GetParser() antlr.Parser
+
+	// Getter signatures
+	Measure() IMeasureContext
+	AllCOMMA() []antlr.TerminalNode
+	COMMA(i int) antlr.TerminalNode
+	AllSortBody() []ISortBodyContext
+	SortBody(i int) ISortBodyContext
+	DESC() antlr.TerminalNode
+	ASC() antlr.TerminalNode
+
+	// IsSortBodyContext differentiates from other interfaces.
+	IsSortBodyContext()
+}
+
+type SortBodyContext struct {
+	antlr.BaseParserRuleContext
+	parser antlr.Parser
+}
+
+func NewEmptySortBodyContext() *SortBodyContext {
+	var p = new(SortBodyContext)
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.RuleIndex = pgqlParserRULE_sortBody
+	return p
+}
+
+func InitEmptySortBodyContext(p *SortBodyContext) {
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.RuleIndex = pgqlParserRULE_sortBody
+}
+
+func (*SortBodyContext) IsSortBodyContext() {}
+
+func NewSortBodyContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *SortBodyContext {
+	var p = new(SortBodyContext)
+
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
+
+	p.parser = parser
+	p.RuleIndex = pgqlParserRULE_sortBody
+
+	return p
+}
+
+func (s *SortBodyContext) GetParser() antlr.Parser { return s.parser }
+
+func (s *SortBodyContext) Measure() IMeasureContext {
+	var t antlr.RuleContext
+	for _, ctx := range s.GetChildren() {
+		if _, ok := ctx.(IMeasureContext); ok {
+			t = ctx.(antlr.RuleContext)
+			break
+		}
+	}
+
+	if t == nil {
+		return nil
+	}
+
+	return t.(IMeasureContext)
+}
+
+func (s *SortBodyContext) AllCOMMA() []antlr.TerminalNode {
+	return s.GetTokens(pgqlParserCOMMA)
+}
+
+func (s *SortBodyContext) COMMA(i int) antlr.TerminalNode {
+	return s.GetToken(pgqlParserCOMMA, i)
+}
+
+func (s *SortBodyContext) AllSortBody() []ISortBodyContext {
+	children := s.GetChildren()
+	len := 0
+	for _, ctx := range children {
+		if _, ok := ctx.(ISortBodyContext); ok {
+			len++
+		}
+	}
+
+	tst := make([]ISortBodyContext, len)
+	i := 0
+	for _, ctx := range children {
+		if t, ok := ctx.(ISortBodyContext); ok {
+			tst[i] = t.(ISortBodyContext)
+			i++
+		}
+	}
+
+	return tst
+}
+
+func (s *SortBodyContext) SortBody(i int) ISortBodyContext {
+	var t antlr.RuleContext
+	j := 0
+	for _, ctx := range s.GetChildren() {
+		if _, ok := ctx.(ISortBodyContext); ok {
+			if j == i {
+				t = ctx.(antlr.RuleContext)
+				break
+			}
+			j++
+		}
+	}
+
+	if t == nil {
+		return nil
+	}
+
+	return t.(ISortBodyContext)
+}
+
+func (s *SortBodyContext) DESC() antlr.TerminalNode {
+	return s.GetToken(pgqlParserDESC, 0)
+}
+
+func (s *SortBodyContext) ASC() antlr.TerminalNode {
+	return s.GetToken(pgqlParserASC, 0)
+}
+
+func (s *SortBodyContext) GetRuleContext() antlr.RuleContext {
+	return s
+}
+
+func (s *SortBodyContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) string {
+	return antlr.TreesStringTree(s, ruleNames, recog)
+}
+
+func (s *SortBodyContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case pgqlVisitor:
+		return t.VisitSortBody(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
+func (p *pgqlParser) SortBody() (localctx ISortBodyContext) {
+	localctx = NewSortBodyContext(p, p.GetParserRuleContext(), p.GetState())
+	p.EnterRule(localctx, 16, pgqlParserRULE_sortBody)
+	var _la int
+
+	var _alt int
+
+	p.EnterOuterAlt(localctx, 1)
+	{
+		p.SetState(98)
 		p.Measure()
 	}
-	p.SetState(93)
+	p.SetState(100)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
 	}
 	_la = p.GetTokenStream().LA(1)
 
-	for _la == pgqlParserDESC || _la == pgqlParserASC {
+	if _la == pgqlParserDESC || _la == pgqlParserASC {
 		{
-			p.SetState(90)
+			p.SetState(99)
 			_la = p.GetTokenStream().LA(1)
 
 			if !(_la == pgqlParserDESC || _la == pgqlParserASC) {
@@ -1697,12 +1797,41 @@ func (p *pgqlParser) SortByClause() (localctx ISortByClauseContext) {
 			}
 		}
 
-		p.SetState(95)
+	}
+	p.SetState(106)
+	p.GetErrorHandler().Sync(p)
+	if p.HasError() {
+		goto errorExit
+	}
+	_alt = p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 12, p.GetParserRuleContext())
+	if p.HasError() {
+		goto errorExit
+	}
+	for _alt != 2 && _alt != antlr.ATNInvalidAltNumber {
+		if _alt == 1 {
+			{
+				p.SetState(102)
+				p.Match(pgqlParserCOMMA)
+				if p.HasError() {
+					// Recognition error - abort rule
+					goto errorExit
+				}
+			}
+			{
+				p.SetState(103)
+				p.SortBody()
+			}
+
+		}
+		p.SetState(108)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 			goto errorExit
 		}
-		_la = p.GetTokenStream().LA(1)
+		_alt = p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 12, p.GetParserRuleContext())
+		if p.HasError() {
+			goto errorExit
+		}
 	}
 
 errorExit:
@@ -1813,10 +1942,10 @@ func (p *pgqlParser) Dimension() (localctx IDimensionContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(96)
+		p.SetState(109)
 		_la = p.GetTokenStream().LA(1)
 
-		if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&1105199104) != 0) {
+		if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&67456) != 0) {
 			p.GetErrorHandler().RecoverInline(p)
 		} else {
 			p.GetErrorHandler().ReportMatch(p)
@@ -1937,15 +2066,822 @@ func (p *pgqlParser) Measure() (localctx IMeasureContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(98)
+		p.SetState(111)
 		_la = p.GetTokenStream().LA(1)
 
-		if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&2113929216) != 0) {
+		if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&129024) != 0) {
 			p.GetErrorHandler().RecoverInline(p)
 		} else {
 			p.GetErrorHandler().ReportMatch(p)
 			p.Consume()
 		}
+	}
+
+errorExit:
+	if p.HasError() {
+		v := p.GetError()
+		localctx.SetException(v)
+		p.GetErrorHandler().ReportError(p, v)
+		p.GetErrorHandler().Recover(p, v)
+		p.SetError(nil)
+	}
+	p.ExitRule()
+	return localctx
+	goto errorExit // Trick to prevent compiler error if the label is not used
+}
+
+// IAggregateFunctionContext is an interface to support dynamic dispatch.
+type IAggregateFunctionContext interface {
+	antlr.ParserRuleContext
+
+	// GetParser returns the parser.
+	GetParser() antlr.Parser
+
+	// Getter signatures
+	Measure() IMeasureContext
+	AVERAGE() antlr.TerminalNode
+	TOTAL() antlr.TerminalNode
+	MAX() antlr.TerminalNode
+	MIN() antlr.TerminalNode
+
+	// IsAggregateFunctionContext differentiates from other interfaces.
+	IsAggregateFunctionContext()
+}
+
+type AggregateFunctionContext struct {
+	antlr.BaseParserRuleContext
+	parser antlr.Parser
+}
+
+func NewEmptyAggregateFunctionContext() *AggregateFunctionContext {
+	var p = new(AggregateFunctionContext)
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.RuleIndex = pgqlParserRULE_aggregateFunction
+	return p
+}
+
+func InitEmptyAggregateFunctionContext(p *AggregateFunctionContext) {
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.RuleIndex = pgqlParserRULE_aggregateFunction
+}
+
+func (*AggregateFunctionContext) IsAggregateFunctionContext() {}
+
+func NewAggregateFunctionContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *AggregateFunctionContext {
+	var p = new(AggregateFunctionContext)
+
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
+
+	p.parser = parser
+	p.RuleIndex = pgqlParserRULE_aggregateFunction
+
+	return p
+}
+
+func (s *AggregateFunctionContext) GetParser() antlr.Parser { return s.parser }
+
+func (s *AggregateFunctionContext) Measure() IMeasureContext {
+	var t antlr.RuleContext
+	for _, ctx := range s.GetChildren() {
+		if _, ok := ctx.(IMeasureContext); ok {
+			t = ctx.(antlr.RuleContext)
+			break
+		}
+	}
+
+	if t == nil {
+		return nil
+	}
+
+	return t.(IMeasureContext)
+}
+
+func (s *AggregateFunctionContext) AVERAGE() antlr.TerminalNode {
+	return s.GetToken(pgqlParserAVERAGE, 0)
+}
+
+func (s *AggregateFunctionContext) TOTAL() antlr.TerminalNode {
+	return s.GetToken(pgqlParserTOTAL, 0)
+}
+
+func (s *AggregateFunctionContext) MAX() antlr.TerminalNode {
+	return s.GetToken(pgqlParserMAX, 0)
+}
+
+func (s *AggregateFunctionContext) MIN() antlr.TerminalNode {
+	return s.GetToken(pgqlParserMIN, 0)
+}
+
+func (s *AggregateFunctionContext) GetRuleContext() antlr.RuleContext {
+	return s
+}
+
+func (s *AggregateFunctionContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) string {
+	return antlr.TreesStringTree(s, ruleNames, recog)
+}
+
+func (s *AggregateFunctionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case pgqlVisitor:
+		return t.VisitAggregateFunction(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
+func (p *pgqlParser) AggregateFunction() (localctx IAggregateFunctionContext) {
+	localctx = NewAggregateFunctionContext(p, p.GetParserRuleContext(), p.GetState())
+	p.EnterRule(localctx, 22, pgqlParserRULE_aggregateFunction)
+	var _la int
+
+	p.EnterOuterAlt(localctx, 1)
+	{
+		p.SetState(113)
+		_la = p.GetTokenStream().LA(1)
+
+		if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&31457280) != 0) {
+			p.GetErrorHandler().RecoverInline(p)
+		} else {
+			p.GetErrorHandler().ReportMatch(p)
+			p.Consume()
+		}
+	}
+	{
+		p.SetState(114)
+		p.Measure()
+	}
+
+errorExit:
+	if p.HasError() {
+		v := p.GetError()
+		localctx.SetException(v)
+		p.GetErrorHandler().ReportError(p, v)
+		p.GetErrorHandler().Recover(p, v)
+		p.SetError(nil)
+	}
+	p.ExitRule()
+	return localctx
+	goto errorExit // Trick to prevent compiler error if the label is not used
+}
+
+// ISequentialFunctionContext is an interface to support dynamic dispatch.
+type ISequentialFunctionContext interface {
+	antlr.ParserRuleContext
+
+	// GetParser returns the parser.
+	GetParser() antlr.Parser
+
+	// Getter signatures
+	RUNNING() antlr.TerminalNode
+
+	// IsSequentialFunctionContext differentiates from other interfaces.
+	IsSequentialFunctionContext()
+}
+
+type SequentialFunctionContext struct {
+	antlr.BaseParserRuleContext
+	parser antlr.Parser
+}
+
+func NewEmptySequentialFunctionContext() *SequentialFunctionContext {
+	var p = new(SequentialFunctionContext)
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.RuleIndex = pgqlParserRULE_sequentialFunction
+	return p
+}
+
+func InitEmptySequentialFunctionContext(p *SequentialFunctionContext) {
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.RuleIndex = pgqlParserRULE_sequentialFunction
+}
+
+func (*SequentialFunctionContext) IsSequentialFunctionContext() {}
+
+func NewSequentialFunctionContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *SequentialFunctionContext {
+	var p = new(SequentialFunctionContext)
+
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
+
+	p.parser = parser
+	p.RuleIndex = pgqlParserRULE_sequentialFunction
+
+	return p
+}
+
+func (s *SequentialFunctionContext) GetParser() antlr.Parser { return s.parser }
+
+func (s *SequentialFunctionContext) RUNNING() antlr.TerminalNode {
+	return s.GetToken(pgqlParserRUNNING, 0)
+}
+
+func (s *SequentialFunctionContext) GetRuleContext() antlr.RuleContext {
+	return s
+}
+
+func (s *SequentialFunctionContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) string {
+	return antlr.TreesStringTree(s, ruleNames, recog)
+}
+
+func (s *SequentialFunctionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case pgqlVisitor:
+		return t.VisitSequentialFunction(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
+func (p *pgqlParser) SequentialFunction() (localctx ISequentialFunctionContext) {
+	localctx = NewSequentialFunctionContext(p, p.GetParserRuleContext(), p.GetState())
+	p.EnterRule(localctx, 24, pgqlParserRULE_sequentialFunction)
+	p.EnterOuterAlt(localctx, 1)
+	{
+		p.SetState(116)
+		p.Match(pgqlParserRUNNING)
+		if p.HasError() {
+			// Recognition error - abort rule
+			goto errorExit
+		}
+	}
+
+errorExit:
+	if p.HasError() {
+		v := p.GetError()
+		localctx.SetException(v)
+		p.GetErrorHandler().ReportError(p, v)
+		p.GetErrorHandler().Recover(p, v)
+		p.SetError(nil)
+	}
+	p.ExitRule()
+	return localctx
+	goto errorExit // Trick to prevent compiler error if the label is not used
+}
+
+// ILogicalOperatorContext is an interface to support dynamic dispatch.
+type ILogicalOperatorContext interface {
+	antlr.ParserRuleContext
+
+	// GetParser returns the parser.
+	GetParser() antlr.Parser
+
+	// Getter signatures
+	LOGICALAND() antlr.TerminalNode
+	LOGICALOR() antlr.TerminalNode
+
+	// IsLogicalOperatorContext differentiates from other interfaces.
+	IsLogicalOperatorContext()
+}
+
+type LogicalOperatorContext struct {
+	antlr.BaseParserRuleContext
+	parser antlr.Parser
+}
+
+func NewEmptyLogicalOperatorContext() *LogicalOperatorContext {
+	var p = new(LogicalOperatorContext)
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.RuleIndex = pgqlParserRULE_logicalOperator
+	return p
+}
+
+func InitEmptyLogicalOperatorContext(p *LogicalOperatorContext) {
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.RuleIndex = pgqlParserRULE_logicalOperator
+}
+
+func (*LogicalOperatorContext) IsLogicalOperatorContext() {}
+
+func NewLogicalOperatorContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *LogicalOperatorContext {
+	var p = new(LogicalOperatorContext)
+
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
+
+	p.parser = parser
+	p.RuleIndex = pgqlParserRULE_logicalOperator
+
+	return p
+}
+
+func (s *LogicalOperatorContext) GetParser() antlr.Parser { return s.parser }
+
+func (s *LogicalOperatorContext) LOGICALAND() antlr.TerminalNode {
+	return s.GetToken(pgqlParserLOGICALAND, 0)
+}
+
+func (s *LogicalOperatorContext) LOGICALOR() antlr.TerminalNode {
+	return s.GetToken(pgqlParserLOGICALOR, 0)
+}
+
+func (s *LogicalOperatorContext) GetRuleContext() antlr.RuleContext {
+	return s
+}
+
+func (s *LogicalOperatorContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) string {
+	return antlr.TreesStringTree(s, ruleNames, recog)
+}
+
+func (s *LogicalOperatorContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case pgqlVisitor:
+		return t.VisitLogicalOperator(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
+func (p *pgqlParser) LogicalOperator() (localctx ILogicalOperatorContext) {
+	localctx = NewLogicalOperatorContext(p, p.GetParserRuleContext(), p.GetState())
+	p.EnterRule(localctx, 26, pgqlParserRULE_logicalOperator)
+	var _la int
+
+	p.EnterOuterAlt(localctx, 1)
+	{
+		p.SetState(118)
+		_la = p.GetTokenStream().LA(1)
+
+		if !(_la == pgqlParserLOGICALAND || _la == pgqlParserLOGICALOR) {
+			p.GetErrorHandler().RecoverInline(p)
+		} else {
+			p.GetErrorHandler().ReportMatch(p)
+			p.Consume()
+		}
+	}
+
+errorExit:
+	if p.HasError() {
+		v := p.GetError()
+		localctx.SetException(v)
+		p.GetErrorHandler().ReportError(p, v)
+		p.GetErrorHandler().Recover(p, v)
+		p.SetError(nil)
+	}
+	p.ExitRule()
+	return localctx
+	goto errorExit // Trick to prevent compiler error if the label is not used
+}
+
+// IPredicateContext is an interface to support dynamic dispatch.
+type IPredicateContext interface {
+	antlr.ParserRuleContext
+
+	// GetParser returns the parser.
+	GetParser() antlr.Parser
+
+	// Getter signatures
+	LPAREN() antlr.TerminalNode
+	RPAREN() antlr.TerminalNode
+	AllPredicate() []IPredicateContext
+	Predicate(i int) IPredicateContext
+	AllExpr() []IExprContext
+	Expr(i int) IExprContext
+	LESSER() antlr.TerminalNode
+	GREATER() antlr.TerminalNode
+	LESSEREQUAL() antlr.TerminalNode
+	GREATEREQUAL() antlr.TerminalNode
+	EQUAL() antlr.TerminalNode
+	NOTEQUAL() antlr.TerminalNode
+	LogicalOperator() ILogicalOperatorContext
+
+	// IsPredicateContext differentiates from other interfaces.
+	IsPredicateContext()
+}
+
+type PredicateContext struct {
+	antlr.BaseParserRuleContext
+	parser antlr.Parser
+}
+
+func NewEmptyPredicateContext() *PredicateContext {
+	var p = new(PredicateContext)
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.RuleIndex = pgqlParserRULE_predicate
+	return p
+}
+
+func InitEmptyPredicateContext(p *PredicateContext) {
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.RuleIndex = pgqlParserRULE_predicate
+}
+
+func (*PredicateContext) IsPredicateContext() {}
+
+func NewPredicateContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *PredicateContext {
+	var p = new(PredicateContext)
+
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
+
+	p.parser = parser
+	p.RuleIndex = pgqlParserRULE_predicate
+
+	return p
+}
+
+func (s *PredicateContext) GetParser() antlr.Parser { return s.parser }
+
+func (s *PredicateContext) LPAREN() antlr.TerminalNode {
+	return s.GetToken(pgqlParserLPAREN, 0)
+}
+
+func (s *PredicateContext) RPAREN() antlr.TerminalNode {
+	return s.GetToken(pgqlParserRPAREN, 0)
+}
+
+func (s *PredicateContext) AllPredicate() []IPredicateContext {
+	children := s.GetChildren()
+	len := 0
+	for _, ctx := range children {
+		if _, ok := ctx.(IPredicateContext); ok {
+			len++
+		}
+	}
+
+	tst := make([]IPredicateContext, len)
+	i := 0
+	for _, ctx := range children {
+		if t, ok := ctx.(IPredicateContext); ok {
+			tst[i] = t.(IPredicateContext)
+			i++
+		}
+	}
+
+	return tst
+}
+
+func (s *PredicateContext) Predicate(i int) IPredicateContext {
+	var t antlr.RuleContext
+	j := 0
+	for _, ctx := range s.GetChildren() {
+		if _, ok := ctx.(IPredicateContext); ok {
+			if j == i {
+				t = ctx.(antlr.RuleContext)
+				break
+			}
+			j++
+		}
+	}
+
+	if t == nil {
+		return nil
+	}
+
+	return t.(IPredicateContext)
+}
+
+func (s *PredicateContext) AllExpr() []IExprContext {
+	children := s.GetChildren()
+	len := 0
+	for _, ctx := range children {
+		if _, ok := ctx.(IExprContext); ok {
+			len++
+		}
+	}
+
+	tst := make([]IExprContext, len)
+	i := 0
+	for _, ctx := range children {
+		if t, ok := ctx.(IExprContext); ok {
+			tst[i] = t.(IExprContext)
+			i++
+		}
+	}
+
+	return tst
+}
+
+func (s *PredicateContext) Expr(i int) IExprContext {
+	var t antlr.RuleContext
+	j := 0
+	for _, ctx := range s.GetChildren() {
+		if _, ok := ctx.(IExprContext); ok {
+			if j == i {
+				t = ctx.(antlr.RuleContext)
+				break
+			}
+			j++
+		}
+	}
+
+	if t == nil {
+		return nil
+	}
+
+	return t.(IExprContext)
+}
+
+func (s *PredicateContext) LESSER() antlr.TerminalNode {
+	return s.GetToken(pgqlParserLESSER, 0)
+}
+
+func (s *PredicateContext) GREATER() antlr.TerminalNode {
+	return s.GetToken(pgqlParserGREATER, 0)
+}
+
+func (s *PredicateContext) LESSEREQUAL() antlr.TerminalNode {
+	return s.GetToken(pgqlParserLESSEREQUAL, 0)
+}
+
+func (s *PredicateContext) GREATEREQUAL() antlr.TerminalNode {
+	return s.GetToken(pgqlParserGREATEREQUAL, 0)
+}
+
+func (s *PredicateContext) EQUAL() antlr.TerminalNode {
+	return s.GetToken(pgqlParserEQUAL, 0)
+}
+
+func (s *PredicateContext) NOTEQUAL() antlr.TerminalNode {
+	return s.GetToken(pgqlParserNOTEQUAL, 0)
+}
+
+func (s *PredicateContext) LogicalOperator() ILogicalOperatorContext {
+	var t antlr.RuleContext
+	for _, ctx := range s.GetChildren() {
+		if _, ok := ctx.(ILogicalOperatorContext); ok {
+			t = ctx.(antlr.RuleContext)
+			break
+		}
+	}
+
+	if t == nil {
+		return nil
+	}
+
+	return t.(ILogicalOperatorContext)
+}
+
+func (s *PredicateContext) GetRuleContext() antlr.RuleContext {
+	return s
+}
+
+func (s *PredicateContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) string {
+	return antlr.TreesStringTree(s, ruleNames, recog)
+}
+
+func (s *PredicateContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case pgqlVisitor:
+		return t.VisitPredicate(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
+func (p *pgqlParser) Predicate() (localctx IPredicateContext) {
+	return p.predicate(0)
+}
+
+func (p *pgqlParser) predicate(_p int) (localctx IPredicateContext) {
+	var _parentctx antlr.ParserRuleContext = p.GetParserRuleContext()
+
+	_parentState := p.GetState()
+	localctx = NewPredicateContext(p, p.GetParserRuleContext(), _parentState)
+	var _prevctx IPredicateContext = localctx
+	var _ antlr.ParserRuleContext = _prevctx // TODO: To prevent unused variable warning.
+	_startState := 28
+	p.EnterRecursionRule(localctx, 28, pgqlParserRULE_predicate, _p)
+	var _la int
+
+	var _alt int
+
+	p.EnterOuterAlt(localctx, 1)
+	p.SetState(133)
+	p.GetErrorHandler().Sync(p)
+	if p.HasError() {
+		goto errorExit
+	}
+
+	switch p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 14, p.GetParserRuleContext()) {
+	case 1:
+		{
+			p.SetState(121)
+			p.Match(pgqlParserLPAREN)
+			if p.HasError() {
+				// Recognition error - abort rule
+				goto errorExit
+			}
+		}
+		p.SetState(123)
+		p.GetErrorHandler().Sync(p)
+		if p.HasError() {
+			goto errorExit
+		}
+		_la = p.GetTokenStream().LA(1)
+
+		for ok := true; ok; ok = ((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&6734540306432) != 0) {
+			{
+				p.SetState(122)
+				p.predicate(0)
+			}
+
+			p.SetState(125)
+			p.GetErrorHandler().Sync(p)
+			if p.HasError() {
+				goto errorExit
+			}
+			_la = p.GetTokenStream().LA(1)
+		}
+		{
+			p.SetState(127)
+			p.Match(pgqlParserRPAREN)
+			if p.HasError() {
+				// Recognition error - abort rule
+				goto errorExit
+			}
+		}
+
+	case 2:
+		{
+			p.SetState(129)
+			p.expr(0)
+		}
+		{
+			p.SetState(130)
+			_la = p.GetTokenStream().LA(1)
+
+			if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&2113929216) != 0) {
+				p.GetErrorHandler().RecoverInline(p)
+			} else {
+				p.GetErrorHandler().ReportMatch(p)
+				p.Consume()
+			}
+		}
+		{
+			p.SetState(131)
+			p.expr(0)
+		}
+
+	case antlr.ATNInvalidAltNumber:
+		goto errorExit
+	}
+	p.GetParserRuleContext().SetStop(p.GetTokenStream().LT(-1))
+	p.SetState(141)
+	p.GetErrorHandler().Sync(p)
+	if p.HasError() {
+		goto errorExit
+	}
+	_alt = p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 15, p.GetParserRuleContext())
+	if p.HasError() {
+		goto errorExit
+	}
+	for _alt != 2 && _alt != antlr.ATNInvalidAltNumber {
+		if _alt == 1 {
+			if p.GetParseListeners() != nil {
+				p.TriggerExitRuleEvent()
+			}
+			_prevctx = localctx
+			localctx = NewPredicateContext(p, _parentctx, _parentState)
+			p.PushNewRecursionContext(localctx, _startState, pgqlParserRULE_predicate)
+			p.SetState(135)
+
+			if !(p.Precpred(p.GetParserRuleContext(), 2)) {
+				p.SetError(antlr.NewFailedPredicateException(p, "p.Precpred(p.GetParserRuleContext(), 2)", ""))
+				goto errorExit
+			}
+			{
+				p.SetState(136)
+				p.LogicalOperator()
+			}
+			{
+				p.SetState(137)
+				p.predicate(3)
+			}
+
+		}
+		p.SetState(143)
+		p.GetErrorHandler().Sync(p)
+		if p.HasError() {
+			goto errorExit
+		}
+		_alt = p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 15, p.GetParserRuleContext())
+		if p.HasError() {
+			goto errorExit
+		}
+	}
+
+errorExit:
+	if p.HasError() {
+		v := p.GetError()
+		localctx.SetException(v)
+		p.GetErrorHandler().ReportError(p, v)
+		p.GetErrorHandler().Recover(p, v)
+		p.SetError(nil)
+	}
+	p.UnrollRecursionContexts(_parentctx)
+	return localctx
+	goto errorExit // Trick to prevent compiler error if the label is not used
+}
+
+// ISpecificityContext is an interface to support dynamic dispatch.
+type ISpecificityContext interface {
+	antlr.ParserRuleContext
+
+	// GetParser returns the parser.
+	GetParser() antlr.Parser
+
+	// Getter signatures
+	IDENTIFIER() antlr.TerminalNode
+	Measure() IMeasureContext
+
+	// IsSpecificityContext differentiates from other interfaces.
+	IsSpecificityContext()
+}
+
+type SpecificityContext struct {
+	antlr.BaseParserRuleContext
+	parser antlr.Parser
+}
+
+func NewEmptySpecificityContext() *SpecificityContext {
+	var p = new(SpecificityContext)
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.RuleIndex = pgqlParserRULE_specificity
+	return p
+}
+
+func InitEmptySpecificityContext(p *SpecificityContext) {
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.RuleIndex = pgqlParserRULE_specificity
+}
+
+func (*SpecificityContext) IsSpecificityContext() {}
+
+func NewSpecificityContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *SpecificityContext {
+	var p = new(SpecificityContext)
+
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
+
+	p.parser = parser
+	p.RuleIndex = pgqlParserRULE_specificity
+
+	return p
+}
+
+func (s *SpecificityContext) GetParser() antlr.Parser { return s.parser }
+
+func (s *SpecificityContext) IDENTIFIER() antlr.TerminalNode {
+	return s.GetToken(pgqlParserIDENTIFIER, 0)
+}
+
+func (s *SpecificityContext) Measure() IMeasureContext {
+	var t antlr.RuleContext
+	for _, ctx := range s.GetChildren() {
+		if _, ok := ctx.(IMeasureContext); ok {
+			t = ctx.(antlr.RuleContext)
+			break
+		}
+	}
+
+	if t == nil {
+		return nil
+	}
+
+	return t.(IMeasureContext)
+}
+
+func (s *SpecificityContext) GetRuleContext() antlr.RuleContext {
+	return s
+}
+
+func (s *SpecificityContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) string {
+	return antlr.TreesStringTree(s, ruleNames, recog)
+}
+
+func (s *SpecificityContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case pgqlVisitor:
+		return t.VisitSpecificity(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
+func (p *pgqlParser) Specificity() (localctx ISpecificityContext) {
+	localctx = NewSpecificityContext(p, p.GetParserRuleContext(), p.GetState())
+	p.EnterRule(localctx, 30, pgqlParserRULE_specificity)
+	p.EnterOuterAlt(localctx, 1)
+	{
+		p.SetState(144)
+		p.Match(pgqlParserIDENTIFIER)
+		if p.HasError() {
+			// Recognition error - abort rule
+			goto errorExit
+		}
+	}
+	{
+		p.SetState(145)
+		p.Match(pgqlParserT__5)
+		if p.HasError() {
+			// Recognition error - abort rule
+			goto errorExit
+		}
+	}
+	{
+		p.SetState(146)
+		p.Measure()
 	}
 
 errorExit:
@@ -1969,10 +2905,19 @@ type IExprContext interface {
 	GetParser() antlr.Parser
 
 	// Getter signatures
+	LPAREN() antlr.TerminalNode
+	RPAREN() antlr.TerminalNode
 	AllExpr() []IExprContext
 	Expr(i int) IExprContext
+	AggregateFunction() IAggregateFunctionContext
+	Specificity() ISpecificityContext
+	IDENTIFIER() antlr.TerminalNode
 	Measure() IMeasureContext
 	NUMBER() antlr.TerminalNode
+	MULTIPLY() antlr.TerminalNode
+	DIVIDE() antlr.TerminalNode
+	SUM() antlr.TerminalNode
+	DIFFERENCE() antlr.TerminalNode
 
 	// IsExprContext differentiates from other interfaces.
 	IsExprContext()
@@ -2009,6 +2954,14 @@ func NewExprContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokin
 }
 
 func (s *ExprContext) GetParser() antlr.Parser { return s.parser }
+
+func (s *ExprContext) LPAREN() antlr.TerminalNode {
+	return s.GetToken(pgqlParserLPAREN, 0)
+}
+
+func (s *ExprContext) RPAREN() antlr.TerminalNode {
+	return s.GetToken(pgqlParserRPAREN, 0)
+}
 
 func (s *ExprContext) AllExpr() []IExprContext {
 	children := s.GetChildren()
@@ -2051,6 +3004,42 @@ func (s *ExprContext) Expr(i int) IExprContext {
 	return t.(IExprContext)
 }
 
+func (s *ExprContext) AggregateFunction() IAggregateFunctionContext {
+	var t antlr.RuleContext
+	for _, ctx := range s.GetChildren() {
+		if _, ok := ctx.(IAggregateFunctionContext); ok {
+			t = ctx.(antlr.RuleContext)
+			break
+		}
+	}
+
+	if t == nil {
+		return nil
+	}
+
+	return t.(IAggregateFunctionContext)
+}
+
+func (s *ExprContext) Specificity() ISpecificityContext {
+	var t antlr.RuleContext
+	for _, ctx := range s.GetChildren() {
+		if _, ok := ctx.(ISpecificityContext); ok {
+			t = ctx.(antlr.RuleContext)
+			break
+		}
+	}
+
+	if t == nil {
+		return nil
+	}
+
+	return t.(ISpecificityContext)
+}
+
+func (s *ExprContext) IDENTIFIER() antlr.TerminalNode {
+	return s.GetToken(pgqlParserIDENTIFIER, 0)
+}
+
 func (s *ExprContext) Measure() IMeasureContext {
 	var t antlr.RuleContext
 	for _, ctx := range s.GetChildren() {
@@ -2069,6 +3058,22 @@ func (s *ExprContext) Measure() IMeasureContext {
 
 func (s *ExprContext) NUMBER() antlr.TerminalNode {
 	return s.GetToken(pgqlParserNUMBER, 0)
+}
+
+func (s *ExprContext) MULTIPLY() antlr.TerminalNode {
+	return s.GetToken(pgqlParserMULTIPLY, 0)
+}
+
+func (s *ExprContext) DIVIDE() antlr.TerminalNode {
+	return s.GetToken(pgqlParserDIVIDE, 0)
+}
+
+func (s *ExprContext) SUM() antlr.TerminalNode {
+	return s.GetToken(pgqlParserSUM, 0)
+}
+
+func (s *ExprContext) DIFFERENCE() antlr.TerminalNode {
+	return s.GetToken(pgqlParserDIFFERENCE, 0)
 }
 
 func (s *ExprContext) GetRuleContext() antlr.RuleContext {
@@ -2100,43 +3105,43 @@ func (p *pgqlParser) expr(_p int) (localctx IExprContext) {
 	localctx = NewExprContext(p, p.GetParserRuleContext(), _parentState)
 	var _prevctx IExprContext = localctx
 	var _ antlr.ParserRuleContext = _prevctx // TODO: To prevent unused variable warning.
-	_startState := 22
-	p.EnterRecursionRule(localctx, 22, pgqlParserRULE_expr, _p)
+	_startState := 32
+	p.EnterRecursionRule(localctx, 32, pgqlParserRULE_expr, _p)
 	var _la int
 
 	var _alt int
 
 	p.EnterOuterAlt(localctx, 1)
-	p.SetState(111)
+	p.SetState(162)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
 	}
 
-	switch p.GetTokenStream().LA(1) {
-	case pgqlParserT__9:
+	switch p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 17, p.GetParserRuleContext()) {
+	case 1:
 		{
-			p.SetState(101)
-			p.Match(pgqlParserT__9)
+			p.SetState(149)
+			p.Match(pgqlParserLPAREN)
 			if p.HasError() {
 				// Recognition error - abort rule
 				goto errorExit
 			}
 		}
-		p.SetState(103)
+		p.SetState(151)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 			goto errorExit
 		}
 		_la = p.GetTokenStream().LA(1)
 
-		for ok := true; ok; ok = ((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&1101625558016) != 0) {
+		for ok := true; ok; ok = ((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&6734540306432) != 0) {
 			{
-				p.SetState(102)
+				p.SetState(150)
 				p.expr(0)
 			}
 
-			p.SetState(105)
+			p.SetState(153)
 			p.GetErrorHandler().Sync(p)
 			if p.HasError() {
 				goto errorExit
@@ -2144,23 +3149,45 @@ func (p *pgqlParser) expr(_p int) (localctx IExprContext) {
 			_la = p.GetTokenStream().LA(1)
 		}
 		{
-			p.SetState(107)
-			p.Match(pgqlParserT__10)
+			p.SetState(155)
+			p.Match(pgqlParserRPAREN)
 			if p.HasError() {
 				// Recognition error - abort rule
 				goto errorExit
 			}
 		}
 
-	case pgqlParserKILLS, pgqlParserDAMAGE, pgqlParserASSISTS, pgqlParserRESCUES, pgqlParserRECALLS, pgqlParserWIN:
+	case 2:
 		{
-			p.SetState(109)
+			p.SetState(157)
+			p.AggregateFunction()
+		}
+
+	case 3:
+		{
+			p.SetState(158)
+			p.Specificity()
+		}
+
+	case 4:
+		{
+			p.SetState(159)
+			p.Match(pgqlParserIDENTIFIER)
+			if p.HasError() {
+				// Recognition error - abort rule
+				goto errorExit
+			}
+		}
+
+	case 5:
+		{
+			p.SetState(160)
 			p.Measure()
 		}
 
-	case pgqlParserNUMBER:
+	case 6:
 		{
-			p.SetState(110)
+			p.SetState(161)
 			p.Match(pgqlParserNUMBER)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -2168,17 +3195,16 @@ func (p *pgqlParser) expr(_p int) (localctx IExprContext) {
 			}
 		}
 
-	default:
-		p.SetError(antlr.NewNoViableAltException(p, nil, nil, nil, nil, nil))
+	case antlr.ATNInvalidAltNumber:
 		goto errorExit
 	}
 	p.GetParserRuleContext().SetStop(p.GetTokenStream().LT(-1))
-	p.SetState(127)
+	p.SetState(172)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
 	}
-	_alt = p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 15, p.GetParserRuleContext())
+	_alt = p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 19, p.GetParserRuleContext())
 	if p.HasError() {
 		goto errorExit
 	}
@@ -2188,27 +3214,52 @@ func (p *pgqlParser) expr(_p int) (localctx IExprContext) {
 				p.TriggerExitRuleEvent()
 			}
 			_prevctx = localctx
-			p.SetState(125)
+			p.SetState(170)
 			p.GetErrorHandler().Sync(p)
 			if p.HasError() {
 				goto errorExit
 			}
 
-			switch p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 14, p.GetParserRuleContext()) {
+			switch p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 18, p.GetParserRuleContext()) {
 			case 1:
 				localctx = NewExprContext(p, _parentctx, _parentState)
 				p.PushNewRecursionContext(localctx, _startState, pgqlParserRULE_expr)
-				p.SetState(113)
+				p.SetState(164)
+
+				if !(p.Precpred(p.GetParserRuleContext(), 7)) {
+					p.SetError(antlr.NewFailedPredicateException(p, "p.Precpred(p.GetParserRuleContext(), 7)", ""))
+					goto errorExit
+				}
+				{
+					p.SetState(165)
+					_la = p.GetTokenStream().LA(1)
+
+					if !(_la == pgqlParserMULTIPLY || _la == pgqlParserDIVIDE) {
+						p.GetErrorHandler().RecoverInline(p)
+					} else {
+						p.GetErrorHandler().ReportMatch(p)
+						p.Consume()
+					}
+				}
+				{
+					p.SetState(166)
+					p.expr(8)
+				}
+
+			case 2:
+				localctx = NewExprContext(p, _parentctx, _parentState)
+				p.PushNewRecursionContext(localctx, _startState, pgqlParserRULE_expr)
+				p.SetState(167)
 
 				if !(p.Precpred(p.GetParserRuleContext(), 6)) {
 					p.SetError(antlr.NewFailedPredicateException(p, "p.Precpred(p.GetParserRuleContext(), 6)", ""))
 					goto errorExit
 				}
 				{
-					p.SetState(114)
+					p.SetState(168)
 					_la = p.GetTokenStream().LA(1)
 
-					if !(_la == pgqlParserT__11 || _la == pgqlParserT__12) {
+					if !(_la == pgqlParserSUM || _la == pgqlParserDIFFERENCE) {
 						p.GetErrorHandler().RecoverInline(p)
 					} else {
 						p.GetErrorHandler().ReportMatch(p)
@@ -2216,80 +3267,8 @@ func (p *pgqlParser) expr(_p int) (localctx IExprContext) {
 					}
 				}
 				{
-					p.SetState(115)
+					p.SetState(169)
 					p.expr(7)
-				}
-
-			case 2:
-				localctx = NewExprContext(p, _parentctx, _parentState)
-				p.PushNewRecursionContext(localctx, _startState, pgqlParserRULE_expr)
-				p.SetState(116)
-
-				if !(p.Precpred(p.GetParserRuleContext(), 5)) {
-					p.SetError(antlr.NewFailedPredicateException(p, "p.Precpred(p.GetParserRuleContext(), 5)", ""))
-					goto errorExit
-				}
-				{
-					p.SetState(117)
-					_la = p.GetTokenStream().LA(1)
-
-					if !(_la == pgqlParserT__13 || _la == pgqlParserT__14) {
-						p.GetErrorHandler().RecoverInline(p)
-					} else {
-						p.GetErrorHandler().ReportMatch(p)
-						p.Consume()
-					}
-				}
-				{
-					p.SetState(118)
-					p.expr(6)
-				}
-
-			case 3:
-				localctx = NewExprContext(p, _parentctx, _parentState)
-				p.PushNewRecursionContext(localctx, _startState, pgqlParserRULE_expr)
-				p.SetState(119)
-
-				if !(p.Precpred(p.GetParserRuleContext(), 4)) {
-					p.SetError(antlr.NewFailedPredicateException(p, "p.Precpred(p.GetParserRuleContext(), 4)", ""))
-					goto errorExit
-				}
-				{
-					p.SetState(120)
-					_la = p.GetTokenStream().LA(1)
-
-					if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&983040) != 0) {
-						p.GetErrorHandler().RecoverInline(p)
-					} else {
-						p.GetErrorHandler().ReportMatch(p)
-						p.Consume()
-					}
-				}
-				{
-					p.SetState(121)
-					p.expr(5)
-				}
-
-			case 4:
-				localctx = NewExprContext(p, _parentctx, _parentState)
-				p.PushNewRecursionContext(localctx, _startState, pgqlParserRULE_expr)
-				p.SetState(122)
-
-				if !(p.Precpred(p.GetParserRuleContext(), 3)) {
-					p.SetError(antlr.NewFailedPredicateException(p, "p.Precpred(p.GetParserRuleContext(), 3)", ""))
-					goto errorExit
-				}
-				{
-					p.SetState(123)
-					p.Match(pgqlParserT__19)
-					if p.HasError() {
-						// Recognition error - abort rule
-						goto errorExit
-					}
-				}
-				{
-					p.SetState(124)
-					p.expr(4)
 				}
 
 			case antlr.ATNInvalidAltNumber:
@@ -2297,12 +3276,12 @@ func (p *pgqlParser) expr(_p int) (localctx IExprContext) {
 			}
 
 		}
-		p.SetState(129)
+		p.SetState(174)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 			goto errorExit
 		}
-		_alt = p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 15, p.GetParserRuleContext())
+		_alt = p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 19, p.GetParserRuleContext())
 		if p.HasError() {
 			goto errorExit
 		}
@@ -2323,7 +3302,14 @@ errorExit:
 
 func (p *pgqlParser) Sempred(localctx antlr.RuleContext, ruleIndex, predIndex int) bool {
 	switch ruleIndex {
-	case 11:
+	case 14:
+		var t *PredicateContext = nil
+		if localctx != nil {
+			t = localctx.(*PredicateContext)
+		}
+		return p.Predicate_Sempred(t, predIndex)
+
+	case 16:
 		var t *ExprContext = nil
 		if localctx != nil {
 			t = localctx.(*ExprContext)
@@ -2335,19 +3321,23 @@ func (p *pgqlParser) Sempred(localctx antlr.RuleContext, ruleIndex, predIndex in
 	}
 }
 
-func (p *pgqlParser) Expr_Sempred(localctx antlr.RuleContext, predIndex int) bool {
+func (p *pgqlParser) Predicate_Sempred(localctx antlr.RuleContext, predIndex int) bool {
 	switch predIndex {
 	case 0:
-		return p.Precpred(p.GetParserRuleContext(), 6)
+		return p.Precpred(p.GetParserRuleContext(), 2)
 
+	default:
+		panic("No predicate with index: " + fmt.Sprint(predIndex))
+	}
+}
+
+func (p *pgqlParser) Expr_Sempred(localctx antlr.RuleContext, predIndex int) bool {
+	switch predIndex {
 	case 1:
-		return p.Precpred(p.GetParserRuleContext(), 5)
+		return p.Precpred(p.GetParserRuleContext(), 7)
 
 	case 2:
-		return p.Precpred(p.GetParserRuleContext(), 4)
-
-	case 3:
-		return p.Precpred(p.GetParserRuleContext(), 3)
+		return p.Precpred(p.GetParserRuleContext(), 6)
 
 	default:
 		panic("No predicate with index: " + fmt.Sprint(predIndex))

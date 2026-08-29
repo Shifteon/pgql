@@ -24,10 +24,6 @@ func (v *BasepgqlVisitor) VisitShowFragment(ctx *ShowFragmentContext) interface{
 	return v.VisitChildren(ctx)
 }
 
-func (v *BasepgqlVisitor) VisitShowFunction(ctx *ShowFunctionContext) interface{} {
-	return v.VisitChildren(ctx)
-}
-
 func (v *BasepgqlVisitor) VisitForClause(ctx *ForClauseContext) interface{} {
 	return v.VisitChildren(ctx)
 }
@@ -44,11 +40,35 @@ func (v *BasepgqlVisitor) VisitSortByClause(ctx *SortByClauseContext) interface{
 	return v.VisitChildren(ctx)
 }
 
+func (v *BasepgqlVisitor) VisitSortBody(ctx *SortBodyContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
 func (v *BasepgqlVisitor) VisitDimension(ctx *DimensionContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 
 func (v *BasepgqlVisitor) VisitMeasure(ctx *MeasureContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BasepgqlVisitor) VisitAggregateFunction(ctx *AggregateFunctionContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BasepgqlVisitor) VisitSequentialFunction(ctx *SequentialFunctionContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BasepgqlVisitor) VisitLogicalOperator(ctx *LogicalOperatorContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BasepgqlVisitor) VisitPredicate(ctx *PredicateContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BasepgqlVisitor) VisitSpecificity(ctx *SpecificityContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 

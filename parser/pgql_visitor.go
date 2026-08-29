@@ -20,9 +20,6 @@ type pgqlVisitor interface {
 	// Visit a parse tree produced by pgqlParser#showFragment.
 	VisitShowFragment(ctx *ShowFragmentContext) interface{}
 
-	// Visit a parse tree produced by pgqlParser#showFunction.
-	VisitShowFunction(ctx *ShowFunctionContext) interface{}
-
 	// Visit a parse tree produced by pgqlParser#forClause.
 	VisitForClause(ctx *ForClauseContext) interface{}
 
@@ -35,11 +32,29 @@ type pgqlVisitor interface {
 	// Visit a parse tree produced by pgqlParser#sortByClause.
 	VisitSortByClause(ctx *SortByClauseContext) interface{}
 
+	// Visit a parse tree produced by pgqlParser#sortBody.
+	VisitSortBody(ctx *SortBodyContext) interface{}
+
 	// Visit a parse tree produced by pgqlParser#dimension.
 	VisitDimension(ctx *DimensionContext) interface{}
 
 	// Visit a parse tree produced by pgqlParser#measure.
 	VisitMeasure(ctx *MeasureContext) interface{}
+
+	// Visit a parse tree produced by pgqlParser#aggregateFunction.
+	VisitAggregateFunction(ctx *AggregateFunctionContext) interface{}
+
+	// Visit a parse tree produced by pgqlParser#sequentialFunction.
+	VisitSequentialFunction(ctx *SequentialFunctionContext) interface{}
+
+	// Visit a parse tree produced by pgqlParser#logicalOperator.
+	VisitLogicalOperator(ctx *LogicalOperatorContext) interface{}
+
+	// Visit a parse tree produced by pgqlParser#predicate.
+	VisitPredicate(ctx *PredicateContext) interface{}
+
+	// Visit a parse tree produced by pgqlParser#specificity.
+	VisitSpecificity(ctx *SpecificityContext) interface{}
 
 	// Visit a parse tree produced by pgqlParser#expr.
 	VisitExpr(ctx *ExprContext) interface{}
