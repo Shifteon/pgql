@@ -120,6 +120,10 @@ by game`
 for player ben`
 	identifiers := `show (5 + 5) yep
 for player ben`
+	duplicateIdentifier := `show (5 + 5) yep, (2 - 3) yep
+for team it`
+	predicate := `show (5 > 5) yep
+for player ben`
 
 	tests := testCases{
 		{"valid show", validShow, ""},
@@ -127,6 +131,8 @@ for player ben`
 		{"aggregate in aggregate", aggregateInAggregate, ""},
 		// TODO: How can I test identifiers are set correctly?
 		{"identifiers", identifiers, ""},
+		{"duplicate identifier", duplicateIdentifier, "Identifier \"yep\" already used!"},
+		{"predicate", predicate, ""},
 	}
 
 	runTests(t, tests)

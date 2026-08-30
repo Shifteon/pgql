@@ -9,9 +9,9 @@ import (
 )
 
 func main() {
-	inputString := `show average kills
-for team ib
-by game, player 
+	inputString := `show kills, ic:damage
+for player ben
+by game
 where kills + 2 > damage + 3`
 	input := antlr.NewInputStream(inputString)
 

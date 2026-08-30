@@ -15,6 +15,18 @@ const (
 	UnkownDimension Dimension = iota
 	TeamDimension
 	PlayerDimension
+	GameDimension
+)
+
+type Clause int
+
+const (
+	UnkownClause Clause = iota
+	ShowClause
+	ForClause
+	ByClause
+	WhereClause
+	SortByClause
 )
 
 // all of the valid team options
@@ -23,16 +35,40 @@ var teams = []string{"ictb", "itb", "icb", "ctb", "ict", "ib", "ic", "it"}
 // all of the valid players
 var players = []string{"isaac", "cody", "trenton", "ben"}
 
+var teamPlayers = map[string][]string{
+	"ictb": {"isaac", "cody", "trenton", "ben"},
+	"itb":  {"isaac", "trenton", "ben"},
+	"icb":  {"isaac", "cody", "ben"},
+	"ctb":  {"cody", "trenton", "ben"},
+	"ict":  {"isaac", "cody", "trenton"},
+	"ib":   {"isaac", "ben"},
+	"ic":   {"isaac", "cody"},
+	"it":   {"isaac", "trenton"},
+}
+
+type identifierValue struct {
+	expr parser.IExprContext
+	pred parser.IPredicateContext
+}
+
+type grain struct {
+	baseDimension Dimension
+	refinements   []Dimension
+}
+
 type Analyzer struct {
 	parser.BasepgqlVisitor
-	isScalar         bool
-	isSequential     bool
-	forDimensionType Dimension
-	identifiers      map[antlr.Token]parser.IExprContext
+	grain
+	isScalar          bool
+	isSequential      bool
+	forDimensionType  Dimension
+	forDimensionValue string
+	identifiers       map[string]identifierValue
+	currentClause     Clause
 }
 
 func Analyze(tree antlr.ParseTree) (Analyzer, error) {
-	analyzer := Analyzer{identifiers: make(map[antlr.Token]parser.IExprContext)}
+	analyzer := Analyzer{identifiers: make(map[string]identifierValue), grain: grain{refinements: make([]Dimension, 0)}}
 	result := analyzer.Visit(tree).(result)
 	return analyzer, result.err
 }
@@ -42,20 +78,42 @@ func (a *Analyzer) Visit(tree antlr.ParseTree) any {
 }
 
 func (a *Analyzer) VisitStatement(ctx *parser.StatementContext) any {
+	a.currentClause = ForClause
 	forResult := a.Visit(ctx.ForClause()).(result)
 	if forResult.err != nil {
 		return forResult
 	}
+
 	if ctx.ByClause() != nil {
+		a.currentClause = ByClause
 		byResult := a.Visit(ctx.ByClause()).(result)
 		if byResult.err != nil {
 			return byResult
 		}
 	}
+
+	a.currentClause = ShowClause
 	showResult := a.Visit(ctx.ShowClause()).(result)
 	if showResult.err != nil {
 		return showResult
 	}
+
+	if ctx.WhereClause() != nil {
+		a.currentClause = WhereClause
+		whereResult := a.Visit(ctx.WhereClause()).(result)
+		if whereResult.err != nil {
+			return whereResult
+		}
+	}
+
+	if ctx.SortByClause() != nil {
+		a.currentClause = SortByClause
+		sortByResult := a.Visit(ctx.SortByClause()).(result)
+		if sortByResult.err != nil {
+			return sortByResult
+		}
+	}
+
 	return ok()
 }
 
@@ -64,16 +122,20 @@ func (a *Analyzer) VisitForClause(ctx *parser.ForClauseContext) any {
 	identifier := strings.ToLower(ctx.IDENTIFIER().GetText())
 	if dimension.PLAYER() != nil {
 		a.forDimensionType = PlayerDimension
+		a.grain.baseDimension = PlayerDimension
 		player := identifier
 		if slices.Contains(players, player) {
+			a.forDimensionValue = player
 			return ok()
 		}
 		return fail(fmt.Sprintf("Unrecognized player %v. Expected one of %v", player, players), ctx.IDENTIFIER().GetSymbol())
 	}
 	if dimension.TEAM() != nil {
 		a.forDimensionType = TeamDimension
+		a.grain.baseDimension = TeamDimension
 		team := identifier
 		if slices.Contains(teams, team) {
+			a.forDimensionValue = team
 			return ok()
 		}
 		return fail(fmt.Sprintf("Unrecognized team %v. Expected one of %v", team, teams), ctx.IDENTIFIER().GetSymbol())
@@ -91,6 +153,10 @@ func (a *Analyzer) VisitByClause(ctx *parser.ByClauseContext) any {
 	isPlayerUsed := false
 	isGameUsed := len(ctx.AllGAME()) == 1
 
+	if isGameUsed {
+		a.grain.refinements = append(a.grain.refinements, GameDimension)
+	}
+
 	var prevDimension Dimension
 	for i, dimension := range ctx.AllDimension() {
 		if dimension.PLAYER() != nil {
@@ -103,6 +169,7 @@ func (a *Analyzer) VisitByClause(ctx *parser.ByClauseContext) any {
 			}
 			isPlayerUsed = true
 			prevDimension = PlayerDimension
+			a.grain.refinements = append(a.grain.refinements, PlayerDimension)
 			continue
 		}
 		if dimension.TEAM() != nil {
@@ -114,6 +181,7 @@ func (a *Analyzer) VisitByClause(ctx *parser.ByClauseContext) any {
 				return fail("'team' dimension already used in FOR clause!", team.GetSymbol())
 			}
 			prevDimension = TeamDimension
+			a.grain.refinements = append(a.grain.refinements, TeamDimension)
 			continue
 		}
 
@@ -152,9 +220,143 @@ func (a *Analyzer) VisitShowFragment(ctx *parser.ShowFragmentContext) any {
 	if a.isScalar && ctx.AggregateFunction() != nil {
 		return fail("Cannot use aggregate functions in a scalar statement!", ctx.AggregateFunction().GetStart())
 	}
+	if ctx.Specificity() != nil {
+		result := a.Visit(ctx.Specificity()).(result)
+		if result.err != nil {
+			return result
+		}
+	}
 	if ctx.IDENTIFIER() != nil {
-		identifier := ctx.IDENTIFIER()
-		a.identifiers[identifier.GetSymbol()] = ctx.Expr()
+		identifier := ctx.IDENTIFIER().GetText()
+		_, alreadyUsed := a.identifiers[identifier]
+		if alreadyUsed {
+			return fail(fmt.Sprintf("Identifier \"%v\" already used!", identifier), ctx.IDENTIFIER().GetSymbol())
+		}
+		if ctx.Expr() != nil {
+			a.identifiers[identifier] = identifierValue{expr: ctx.Expr()}
+		} else if ctx.Predicate() != nil {
+			a.identifiers[identifier] = identifierValue{pred: ctx.Predicate()}
+		} else {
+			// This should never happen since the parser should catch this. Just being safe
+			return fail(fmt.Sprintf("Could not find expression or predicate preceding identifier \"%q\"", identifier), ctx.IDENTIFIER().GetSymbol())
+		}
+	}
+
+	return ok()
+}
+
+func (a *Analyzer) VisitWhereClause(ctx *parser.WhereClauseContext) any {
+	for _, predicate := range ctx.AllPredicate() {
+		result := a.Visit(predicate).(result)
+		if result.err != nil {
+			return result
+		}
+	}
+
+	return ok()
+}
+
+func (a *Analyzer) VisitSortByClause(ctx *parser.SortByClauseContext) any {
+	result := a.Visit(ctx.SortBody()).(result)
+	if result.err != nil {
+		return result
+	}
+	return ok()
+}
+
+func (a *Analyzer) VisitSortBody(ctx *parser.SortBodyContext) any {
+	exprResult := a.Visit(ctx.Expr()).(result)
+	if exprResult.err != nil {
+		return exprResult
+	}
+
+	for _, sortBody := range ctx.AllSortBody() {
+		result := a.Visit(sortBody).(result)
+		if result.err != nil {
+			return result
+		}
+	}
+
+	return ok()
+}
+
+func (a *Analyzer) VisitPredicate(ctx *parser.PredicateContext) any {
+	for _, expr := range ctx.AllExpr() {
+		result := a.Visit(expr).(result)
+		if result.err != nil {
+			return result
+		}
+	}
+
+	for _, predicate := range ctx.AllPredicate() {
+		result := a.Visit(predicate).(result)
+		if result.err != nil {
+			return result
+		}
+	}
+
+	return ok()
+}
+
+func (a *Analyzer) VisitExpr(ctx *parser.ExprContext) any {
+	if ctx.IDENTIFIER() != nil {
+		_, exists := a.identifiers[ctx.IDENTIFIER().GetText()]
+		if !exists {
+			return fail(fmt.Sprintf("Undeclared identifer: \"%v\"", ctx.IDENTIFIER().GetText()), ctx.IDENTIFIER().GetSymbol())
+		}
+	}
+	if a.isScalar && ctx.AggregateFunction() != nil {
+		return fail("Cannot use aggregate functions in a scalar statement!", ctx.AggregateFunction().GetStart())
+	}
+	if ctx.Specificity() != nil {
+		result := a.Visit(ctx.Specificity()).(result)
+		if result.err != nil {
+			return result
+		}
+	}
+
+	if len(ctx.AllExpr()) > 0 {
+		for _, expr := range ctx.AllExpr() {
+			result := a.Visit(expr).(result)
+			if result.err != nil {
+				return result
+			}
+		}
+	}
+
+	return ok()
+}
+
+func (a *Analyzer) VisitSpecificity(ctx *parser.SpecificityContext) any {
+	var specificityDimension Dimension
+
+	identifier := strings.ToLower(ctx.IDENTIFIER().GetText())
+	identifierToken := ctx.IDENTIFIER().GetSymbol()
+	if slices.Contains(players, identifier) {
+		if a.forDimensionType == PlayerDimension {
+			return fail("Player identifier cannot be used in specificity when player is already used in the FOR clause!", identifierToken)
+		}
+		team := teamPlayers[a.forDimensionValue]
+		if !slices.Contains(team, identifier) {
+			return fail(fmt.Sprintf("Player \"%v\" is not on Team \"%v\"!", identifier, a.forDimensionValue), identifierToken)
+		}
+		specificityDimension = PlayerDimension
+	} else if slices.Contains(teams, identifier) {
+		if a.forDimensionType == TeamDimension {
+			return fail("Team identifier cannot be used in specificity when team is already used in the FOR clause!", identifierToken)
+		}
+		player := a.forDimensionValue
+		team := teamPlayers[identifier]
+		if !slices.Contains(team, player) {
+			return fail(fmt.Sprintf("Player \"%v\" is not on Team \"%v\"!", a.forDimensionValue, identifier), identifierToken)
+		}
+		specificityDimension = TeamDimension
+	} else {
+		message := fmt.Sprintf("Identifier in specificity cannot be mapped to a player or team! Got: %v. Expected one of %v or %v", identifier, players, teams)
+		return fail(message, identifierToken)
+	}
+	if a.currentClause == ShowClause && specificityDimension == PlayerDimension && slices.Contains(a.grain.refinements, GameDimension) {
+		a.isScalar = true
 	}
 
 	return ok()
