@@ -26,14 +26,15 @@ var players = []string{"isaac", "cody", "trenton", "ben"}
 type Analyzer struct {
 	parser.BasepgqlVisitor
 	isScalar         bool
+	isSequential     bool
 	forDimensionType Dimension
-	identifiers      map[string]string
+	identifiers      map[antlr.Token]parser.IExprContext
 }
 
-func Analyze(tree antlr.ParseTree) error {
-	analyzer := Analyzer{}
+func Analyze(tree antlr.ParseTree) (Analyzer, error) {
+	analyzer := Analyzer{identifiers: make(map[antlr.Token]parser.IExprContext)}
 	result := analyzer.Visit(tree).(result)
-	return result.err
+	return analyzer, result.err
 }
 
 func (a *Analyzer) Visit(tree antlr.ParseTree) any {
@@ -51,7 +52,11 @@ func (a *Analyzer) VisitStatement(ctx *parser.StatementContext) any {
 			return byResult
 		}
 	}
-	return result{}
+	showResult := a.Visit(ctx.ShowClause()).(result)
+	if showResult.err != nil {
+		return showResult
+	}
+	return ok()
 }
 
 func (a *Analyzer) VisitForClause(ctx *parser.ForClauseContext) any {
@@ -117,5 +122,40 @@ func (a *Analyzer) VisitByClause(ctx *parser.ByClauseContext) any {
 	}
 
 	a.isScalar = a.forDimensionType == PlayerDimension && isGameUsed || isGameUsed && isPlayerUsed
+	return ok()
+}
+
+func (a *Analyzer) VisitShowClause(ctx *parser.ShowClauseContext) any {
+	if ctx.SequentialFunction() != nil {
+		a.isSequential = true
+	}
+	result := a.Visit(ctx.ShowBody()).(result)
+	if result.err != nil {
+		return result
+	}
+
+	return ok()
+}
+
+func (a *Analyzer) VisitShowBody(ctx *parser.ShowBodyContext) any {
+	for _, fragment := range ctx.AllShowFragment() {
+		result := a.Visit(fragment).(result)
+		if result.err != nil {
+			return result
+		}
+	}
+
+	return ok()
+}
+
+func (a *Analyzer) VisitShowFragment(ctx *parser.ShowFragmentContext) any {
+	if a.isScalar && ctx.AggregateFunction() != nil {
+		return fail("Cannot use aggregate functions in a scalar statement!", ctx.AggregateFunction().GetStart())
+	}
+	if ctx.IDENTIFIER() != nil {
+		identifier := ctx.IDENTIFIER()
+		a.identifiers[identifier.GetSymbol()] = ctx.Expr()
+	}
+
 	return ok()
 }

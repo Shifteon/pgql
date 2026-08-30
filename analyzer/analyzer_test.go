@@ -8,11 +8,13 @@ import (
 	"github.com/antlr4-go/antlr/v4"
 )
 
-type testCases []struct {
+type testCase struct {
 	name            string
 	input           string
 	expectedMessage string
 }
+
+type testCases []testCase
 
 func buildTree(input string) parser.IStatementContext {
 	inputStream := antlr.NewInputStream(input)
@@ -25,7 +27,7 @@ func buildTree(input string) parser.IStatementContext {
 func runTests(t *testing.T, testCases testCases) {
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
-			err := Analyze(buildTree(test.input))
+			_, err := Analyze(buildTree(test.input))
 
 			// no error expected
 			if test.expectedMessage == "" {
@@ -43,6 +45,7 @@ func runTests(t *testing.T, testCases testCases) {
 			if !strings.Contains(err.Error(), test.expectedMessage) {
 				t.Fatalf("Expected error with message like %q. Got %q", test.expectedMessage, err.Error())
 			}
+
 		})
 	}
 }
@@ -102,6 +105,28 @@ by player, player`
 		{"game used twice", gameUsedTwice, "Used the same dimension 'game' more than once!"},
 		{"team used twice", teamUsedTwice, "Used the same dimension 'team' more than once!"},
 		{"player used twice", playerUsedTwice, "Used the same dimension 'player' more than once!"},
+	}
+
+	runTests(t, tests)
+}
+
+func TestShowClause(t *testing.T) {
+	validShow := `show kills
+for team ic`
+	aggregateInScalar := `show average kills
+for player ben
+by game`
+	aggregateInAggregate := `show max kills
+for player ben`
+	identifiers := `show (5 + 5) yep
+for player ben`
+
+	tests := testCases{
+		{"valid show", validShow, ""},
+		{"aggregate in scalar", aggregateInScalar, "Cannot use aggregate functions in a scalar statement!"},
+		{"aggregate in aggregate", aggregateInAggregate, ""},
+		// TODO: How can I test identifiers are set correctly?
+		{"identifiers", identifiers, ""},
 	}
 
 	runTests(t, tests)

@@ -21,7 +21,7 @@ where kills + 2 > damage + 3`
 	parser := parser.NewpgqlParser(stream)
 	tree := parser.Statement()
 
-	err := analyzer.Analyze(tree)
+	_, err := analyzer.Analyze(tree)
 	if err != nil {
 		fmt.Println(err)
 		return
