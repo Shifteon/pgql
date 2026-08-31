@@ -16,7 +16,7 @@ sortByClause : 'sort by' sortBody ;
 sortBody : expr (DESC | ASC)? (COMMA sortBody)* ;
 
 dimension : PLAYER | TEAM | DATE | TYPE | WIN ;
-measure : KILLS | DAMAGE | ASSISTS | RESCUES | RECALLS | WIN ;
+measure : KILLS | DAMAGE | ASSISTS | RESCUES | RECALLS | WIN | TOTALLOSES | TOTALWINS | GAMECOUNT ;
 aggregateFunction : (AVERAGE | TOTAL | MAX | MIN) measure ;
 sequentialFunction : RUNNING ;
 logicalOperator : LOGICALAND | LOGICALOR ;
@@ -52,6 +52,9 @@ RESCUES : 'rescues' ;
 RECALLS : 'recalls' ;
 WIN : 'win' ;
 GAME : 'game' ;
+TOTALWINS : 'totalWins' ;
+TOTALLOSES : 'totalLoses' ;
+GAMECOUNT : 'gameCount' ;
 
 /* Modifiers */
 DESC : 'desc' ;

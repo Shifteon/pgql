@@ -19,3 +19,7 @@ func fail(msg string, token antlr.Token) result {
 	charPosition := token.GetTokenSource().GetCharPositionInLine()
 	return result{err: fmt.Errorf("line %v : char %v - error: %v", lineNumber, charPosition, msg)}
 }
+
+func message(token antlr.BaseToken) {
+	fmt.Printf("")
+}
