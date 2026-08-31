@@ -124,6 +124,8 @@ for player ben`
 for team it`
 	predicate := `show (5 > 5) yep
 for player ben`
+	specificity := `show ben:kills
+for team ib`
 
 	tests := testCases{
 		{"valid show", validShow, ""},
@@ -133,6 +135,67 @@ for player ben`
 		{"identifiers", identifiers, ""},
 		{"duplicate identifier", duplicateIdentifier, "Identifier \"yep\" already used!"},
 		{"predicate", predicate, ""},
+		{"specificity", specificity, ""},
+	}
+
+	runTests(t, tests)
+}
+
+func testExpr(t *testing.T) {
+	valid := `show (kills / damage) test
+for team ic`
+	nonExistintIdentifierInShow := `show nope, (5 + 5) nope
+for player cody`
+	existintIdentifierInShow := `show (5 + 5) yep, yep
+for player cody`
+	nonExistintIdentifierInWhere := `show (5 + 5) yep
+for team ic
+where nope > 5`
+	exisitintIdentifierInWhere := `show (5 + 5) yep
+for team ic
+where yep > 5`
+	aggregateInScalar := `show kills
+for player ben
+by game
+where average damage > 4`
+	validAggregate := `show kills
+for player ben
+where average damage > 4`
+
+	tests := testCases{
+		{"valid expr", valid, ""},
+		{"non existint identifier in show", nonExistintIdentifierInShow, "Undeclared identifer: \"nope\""},
+		{"existint identifier in show", existintIdentifierInShow, ""},
+		{"non existint identifier in where", nonExistintIdentifierInWhere, "Undeclared identifer: \"nope\""},
+		{"existint identifier in where", exisitintIdentifierInWhere, ""},
+		{"aggregate in scalar", aggregateInScalar, "Cannot use aggregate functions in a scalar statement!"},
+		{"valid aggregate", validAggregate, ""},
+	}
+
+	runTests(t, tests)
+}
+
+func TestSpecificity(t *testing.T) {
+	valid := `show ben:kills
+for team ib`
+	playerAndPlayer := `show ben:kills
+for player cody`
+	teamAndTeam := `show ib:kills
+for team ic`
+	invalidIdentifier := `show nope:kills
+for team ic`
+	teamDoesNotHavePlayer := `show ben:kills
+for team ic`
+	playerNotOnTeam := `show ic:kills
+for player ben`
+
+	tests := testCases{
+		{"valid specificity", valid, ""},
+		{"player and player", playerAndPlayer, "Player identifier cannot be used in specificity when player is already used in the FOR clause!"},
+		{"team and team", teamAndTeam, "Team identifier cannot be used in specificity when team is already used in the FOR clause!"},
+		{"invalid identifier", invalidIdentifier, "Identifier in specificity cannot be mapped to a player or team!"},
+		{"team does not have player", teamDoesNotHavePlayer, "Player \"ben\" is not on Team \"ic\"!"},
+		{"player not on team", playerNotOnTeam, "Player \"ben\" is not on Team \"ic\"!"},
 	}
 
 	runTests(t, tests)
