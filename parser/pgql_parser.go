@@ -53,88 +53,88 @@ func pgqlParserInit() {
 		"statement", "showClause", "showBody", "showFragment", "forClause",
 		"byClause", "whereClause", "sortByClause", "sortBody", "dimension",
 		"measure", "aggregateFunction", "sequentialFunction", "logicalOperator",
-		"predicate", "specificity", "expr",
+		"comparisonOperator", "predicate", "specificity", "expr",
 	}
 	staticData.PredictionContextCache = antlr.NewPredictionContextCache()
 	staticData.serializedATN = []int32{
-		4, 1, 46, 179, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
+		4, 1, 46, 180, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
 		4, 2, 5, 7, 5, 2, 6, 7, 6, 2, 7, 7, 7, 2, 8, 7, 8, 2, 9, 7, 9, 2, 10, 7,
 		10, 2, 11, 7, 11, 2, 12, 7, 12, 2, 13, 7, 13, 2, 14, 7, 14, 2, 15, 7, 15,
-		2, 16, 7, 16, 1, 0, 1, 0, 1, 0, 3, 0, 38, 8, 0, 1, 0, 3, 0, 41, 8, 0, 1,
-		0, 3, 0, 44, 8, 0, 1, 0, 1, 0, 1, 1, 1, 1, 3, 1, 50, 8, 1, 1, 1, 1, 1,
-		1, 2, 1, 2, 1, 2, 5, 2, 57, 8, 2, 10, 2, 12, 2, 60, 9, 2, 1, 3, 1, 3, 1,
-		3, 1, 3, 1, 3, 1, 3, 3, 3, 68, 8, 3, 1, 3, 1, 3, 1, 3, 3, 3, 73, 8, 3,
-		1, 4, 1, 4, 1, 4, 1, 4, 1, 5, 1, 5, 1, 5, 3, 5, 82, 8, 5, 1, 5, 1, 5, 1,
-		5, 3, 5, 87, 8, 5, 3, 5, 89, 8, 5, 1, 6, 1, 6, 4, 6, 93, 8, 6, 11, 6, 12,
-		6, 94, 1, 7, 1, 7, 1, 7, 1, 8, 1, 8, 3, 8, 102, 8, 8, 1, 8, 1, 8, 5, 8,
-		106, 8, 8, 10, 8, 12, 8, 109, 9, 8, 1, 9, 1, 9, 1, 10, 1, 10, 1, 11, 1,
-		11, 1, 11, 1, 12, 1, 12, 1, 13, 1, 13, 1, 14, 1, 14, 1, 14, 4, 14, 125,
-		8, 14, 11, 14, 12, 14, 126, 1, 14, 1, 14, 1, 14, 1, 14, 1, 14, 1, 14, 3,
-		14, 135, 8, 14, 1, 14, 1, 14, 1, 14, 1, 14, 5, 14, 141, 8, 14, 10, 14,
-		12, 14, 144, 9, 14, 1, 15, 1, 15, 1, 15, 1, 15, 3, 15, 150, 8, 15, 1, 16,
-		1, 16, 1, 16, 4, 16, 155, 8, 16, 11, 16, 12, 16, 156, 1, 16, 1, 16, 1,
-		16, 1, 16, 1, 16, 1, 16, 1, 16, 3, 16, 166, 8, 16, 1, 16, 1, 16, 1, 16,
-		1, 16, 1, 16, 1, 16, 5, 16, 174, 8, 16, 10, 16, 12, 16, 177, 9, 16, 1,
-		16, 0, 2, 28, 32, 17, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26,
-		28, 30, 32, 0, 8, 1, 0, 21, 22, 2, 0, 7, 10, 16, 16, 2, 0, 11, 16, 18,
-		20, 1, 0, 24, 27, 1, 0, 38, 39, 1, 0, 28, 33, 1, 0, 36, 37, 1, 0, 34, 35,
-		188, 0, 34, 1, 0, 0, 0, 2, 47, 1, 0, 0, 0, 4, 53, 1, 0, 0, 0, 6, 72, 1,
-		0, 0, 0, 8, 74, 1, 0, 0, 0, 10, 78, 1, 0, 0, 0, 12, 90, 1, 0, 0, 0, 14,
-		96, 1, 0, 0, 0, 16, 99, 1, 0, 0, 0, 18, 110, 1, 0, 0, 0, 20, 112, 1, 0,
-		0, 0, 22, 114, 1, 0, 0, 0, 24, 117, 1, 0, 0, 0, 26, 119, 1, 0, 0, 0, 28,
-		134, 1, 0, 0, 0, 30, 145, 1, 0, 0, 0, 32, 165, 1, 0, 0, 0, 34, 35, 3, 2,
-		1, 0, 35, 37, 3, 8, 4, 0, 36, 38, 3, 10, 5, 0, 37, 36, 1, 0, 0, 0, 37,
-		38, 1, 0, 0, 0, 38, 40, 1, 0, 0, 0, 39, 41, 3, 12, 6, 0, 40, 39, 1, 0,
-		0, 0, 40, 41, 1, 0, 0, 0, 41, 43, 1, 0, 0, 0, 42, 44, 3, 14, 7, 0, 43,
-		42, 1, 0, 0, 0, 43, 44, 1, 0, 0, 0, 44, 45, 1, 0, 0, 0, 45, 46, 5, 0, 0,
-		1, 46, 1, 1, 0, 0, 0, 47, 49, 5, 1, 0, 0, 48, 50, 3, 24, 12, 0, 49, 48,
-		1, 0, 0, 0, 49, 50, 1, 0, 0, 0, 50, 51, 1, 0, 0, 0, 51, 52, 3, 4, 2, 0,
-		52, 3, 1, 0, 0, 0, 53, 58, 3, 6, 3, 0, 54, 55, 5, 42, 0, 0, 55, 57, 3,
-		6, 3, 0, 56, 54, 1, 0, 0, 0, 57, 60, 1, 0, 0, 0, 58, 56, 1, 0, 0, 0, 58,
-		59, 1, 0, 0, 0, 59, 5, 1, 0, 0, 0, 60, 58, 1, 0, 0, 0, 61, 73, 3, 20, 10,
-		0, 62, 73, 3, 22, 11, 0, 63, 73, 3, 30, 15, 0, 64, 67, 5, 40, 0, 0, 65,
-		68, 3, 32, 16, 0, 66, 68, 3, 28, 14, 0, 67, 65, 1, 0, 0, 0, 67, 66, 1,
-		0, 0, 0, 68, 69, 1, 0, 0, 0, 69, 70, 5, 41, 0, 0, 70, 71, 5, 45, 0, 0,
-		71, 73, 1, 0, 0, 0, 72, 61, 1, 0, 0, 0, 72, 62, 1, 0, 0, 0, 72, 63, 1,
-		0, 0, 0, 72, 64, 1, 0, 0, 0, 73, 7, 1, 0, 0, 0, 74, 75, 5, 2, 0, 0, 75,
-		76, 3, 18, 9, 0, 76, 77, 5, 45, 0, 0, 77, 9, 1, 0, 0, 0, 78, 81, 5, 3,
-		0, 0, 79, 82, 3, 18, 9, 0, 80, 82, 5, 17, 0, 0, 81, 79, 1, 0, 0, 0, 81,
-		80, 1, 0, 0, 0, 82, 88, 1, 0, 0, 0, 83, 86, 5, 42, 0, 0, 84, 87, 3, 18,
-		9, 0, 85, 87, 5, 17, 0, 0, 86, 84, 1, 0, 0, 0, 86, 85, 1, 0, 0, 0, 87,
-		89, 1, 0, 0, 0, 88, 83, 1, 0, 0, 0, 88, 89, 1, 0, 0, 0, 89, 11, 1, 0, 0,
-		0, 90, 92, 5, 4, 0, 0, 91, 93, 3, 28, 14, 0, 92, 91, 1, 0, 0, 0, 93, 94,
-		1, 0, 0, 0, 94, 92, 1, 0, 0, 0, 94, 95, 1, 0, 0, 0, 95, 13, 1, 0, 0, 0,
-		96, 97, 5, 5, 0, 0, 97, 98, 3, 16, 8, 0, 98, 15, 1, 0, 0, 0, 99, 101, 3,
-		32, 16, 0, 100, 102, 7, 0, 0, 0, 101, 100, 1, 0, 0, 0, 101, 102, 1, 0,
-		0, 0, 102, 107, 1, 0, 0, 0, 103, 104, 5, 42, 0, 0, 104, 106, 3, 16, 8,
-		0, 105, 103, 1, 0, 0, 0, 106, 109, 1, 0, 0, 0, 107, 105, 1, 0, 0, 0, 107,
-		108, 1, 0, 0, 0, 108, 17, 1, 0, 0, 0, 109, 107, 1, 0, 0, 0, 110, 111, 7,
-		1, 0, 0, 111, 19, 1, 0, 0, 0, 112, 113, 7, 2, 0, 0, 113, 21, 1, 0, 0, 0,
-		114, 115, 7, 3, 0, 0, 115, 116, 3, 20, 10, 0, 116, 23, 1, 0, 0, 0, 117,
-		118, 5, 23, 0, 0, 118, 25, 1, 0, 0, 0, 119, 120, 7, 4, 0, 0, 120, 27, 1,
-		0, 0, 0, 121, 122, 6, 14, -1, 0, 122, 124, 5, 40, 0, 0, 123, 125, 3, 28,
-		14, 0, 124, 123, 1, 0, 0, 0, 125, 126, 1, 0, 0, 0, 126, 124, 1, 0, 0, 0,
-		126, 127, 1, 0, 0, 0, 127, 128, 1, 0, 0, 0, 128, 129, 5, 41, 0, 0, 129,
-		135, 1, 0, 0, 0, 130, 131, 3, 32, 16, 0, 131, 132, 7, 5, 0, 0, 132, 133,
-		3, 32, 16, 0, 133, 135, 1, 0, 0, 0, 134, 121, 1, 0, 0, 0, 134, 130, 1,
-		0, 0, 0, 135, 142, 1, 0, 0, 0, 136, 137, 10, 2, 0, 0, 137, 138, 3, 26,
-		13, 0, 138, 139, 3, 28, 14, 3, 139, 141, 1, 0, 0, 0, 140, 136, 1, 0, 0,
-		0, 141, 144, 1, 0, 0, 0, 142, 140, 1, 0, 0, 0, 142, 143, 1, 0, 0, 0, 143,
-		29, 1, 0, 0, 0, 144, 142, 1, 0, 0, 0, 145, 146, 5, 45, 0, 0, 146, 149,
-		5, 6, 0, 0, 147, 150, 3, 20, 10, 0, 148, 150, 3, 22, 11, 0, 149, 147, 1,
-		0, 0, 0, 149, 148, 1, 0, 0, 0, 150, 31, 1, 0, 0, 0, 151, 152, 6, 16, -1,
-		0, 152, 154, 5, 40, 0, 0, 153, 155, 3, 32, 16, 0, 154, 153, 1, 0, 0, 0,
-		155, 156, 1, 0, 0, 0, 156, 154, 1, 0, 0, 0, 156, 157, 1, 0, 0, 0, 157,
-		158, 1, 0, 0, 0, 158, 159, 5, 41, 0, 0, 159, 166, 1, 0, 0, 0, 160, 166,
-		3, 22, 11, 0, 161, 166, 3, 30, 15, 0, 162, 166, 5, 45, 0, 0, 163, 166,
-		3, 20, 10, 0, 164, 166, 5, 44, 0, 0, 165, 151, 1, 0, 0, 0, 165, 160, 1,
-		0, 0, 0, 165, 161, 1, 0, 0, 0, 165, 162, 1, 0, 0, 0, 165, 163, 1, 0, 0,
-		0, 165, 164, 1, 0, 0, 0, 166, 175, 1, 0, 0, 0, 167, 168, 10, 7, 0, 0, 168,
-		169, 7, 6, 0, 0, 169, 174, 3, 32, 16, 8, 170, 171, 10, 6, 0, 0, 171, 172,
-		7, 7, 0, 0, 172, 174, 3, 32, 16, 7, 173, 167, 1, 0, 0, 0, 173, 170, 1,
-		0, 0, 0, 174, 177, 1, 0, 0, 0, 175, 173, 1, 0, 0, 0, 175, 176, 1, 0, 0,
-		0, 176, 33, 1, 0, 0, 0, 177, 175, 1, 0, 0, 0, 21, 37, 40, 43, 49, 58, 67,
-		72, 81, 86, 88, 94, 101, 107, 126, 134, 142, 149, 156, 165, 173, 175,
+		2, 16, 7, 16, 2, 17, 7, 17, 1, 0, 1, 0, 1, 0, 3, 0, 40, 8, 0, 1, 0, 3,
+		0, 43, 8, 0, 1, 0, 3, 0, 46, 8, 0, 1, 0, 1, 0, 1, 1, 1, 1, 3, 1, 52, 8,
+		1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 5, 2, 59, 8, 2, 10, 2, 12, 2, 62, 9, 2,
+		1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 3, 3, 70, 8, 3, 1, 3, 1, 3, 1, 3, 3,
+		3, 75, 8, 3, 1, 4, 1, 4, 1, 4, 1, 4, 1, 5, 1, 5, 1, 5, 3, 5, 84, 8, 5,
+		1, 5, 1, 5, 1, 5, 3, 5, 89, 8, 5, 3, 5, 91, 8, 5, 1, 6, 1, 6, 1, 6, 1,
+		7, 1, 7, 1, 7, 1, 8, 1, 8, 3, 8, 101, 8, 8, 1, 8, 1, 8, 5, 8, 105, 8, 8,
+		10, 8, 12, 8, 108, 9, 8, 1, 9, 1, 9, 1, 10, 1, 10, 1, 11, 1, 11, 1, 11,
+		1, 12, 1, 12, 1, 13, 1, 13, 1, 14, 1, 14, 1, 15, 1, 15, 1, 15, 4, 15, 126,
+		8, 15, 11, 15, 12, 15, 127, 1, 15, 1, 15, 1, 15, 1, 15, 1, 15, 1, 15, 3,
+		15, 136, 8, 15, 1, 15, 1, 15, 1, 15, 1, 15, 5, 15, 142, 8, 15, 10, 15,
+		12, 15, 145, 9, 15, 1, 16, 1, 16, 1, 16, 1, 16, 3, 16, 151, 8, 16, 1, 17,
+		1, 17, 1, 17, 4, 17, 156, 8, 17, 11, 17, 12, 17, 157, 1, 17, 1, 17, 1,
+		17, 1, 17, 1, 17, 1, 17, 1, 17, 3, 17, 167, 8, 17, 1, 17, 1, 17, 1, 17,
+		1, 17, 1, 17, 1, 17, 5, 17, 175, 8, 17, 10, 17, 12, 17, 178, 9, 17, 1,
+		17, 0, 2, 30, 34, 18, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26,
+		28, 30, 32, 34, 0, 8, 1, 0, 21, 22, 2, 0, 7, 10, 16, 16, 2, 0, 11, 16,
+		18, 20, 1, 0, 24, 27, 1, 0, 38, 39, 1, 0, 28, 33, 1, 0, 36, 37, 1, 0, 34,
+		35, 187, 0, 36, 1, 0, 0, 0, 2, 49, 1, 0, 0, 0, 4, 55, 1, 0, 0, 0, 6, 74,
+		1, 0, 0, 0, 8, 76, 1, 0, 0, 0, 10, 80, 1, 0, 0, 0, 12, 92, 1, 0, 0, 0,
+		14, 95, 1, 0, 0, 0, 16, 98, 1, 0, 0, 0, 18, 109, 1, 0, 0, 0, 20, 111, 1,
+		0, 0, 0, 22, 113, 1, 0, 0, 0, 24, 116, 1, 0, 0, 0, 26, 118, 1, 0, 0, 0,
+		28, 120, 1, 0, 0, 0, 30, 135, 1, 0, 0, 0, 32, 146, 1, 0, 0, 0, 34, 166,
+		1, 0, 0, 0, 36, 37, 3, 2, 1, 0, 37, 39, 3, 8, 4, 0, 38, 40, 3, 10, 5, 0,
+		39, 38, 1, 0, 0, 0, 39, 40, 1, 0, 0, 0, 40, 42, 1, 0, 0, 0, 41, 43, 3,
+		12, 6, 0, 42, 41, 1, 0, 0, 0, 42, 43, 1, 0, 0, 0, 43, 45, 1, 0, 0, 0, 44,
+		46, 3, 14, 7, 0, 45, 44, 1, 0, 0, 0, 45, 46, 1, 0, 0, 0, 46, 47, 1, 0,
+		0, 0, 47, 48, 5, 0, 0, 1, 48, 1, 1, 0, 0, 0, 49, 51, 5, 1, 0, 0, 50, 52,
+		3, 24, 12, 0, 51, 50, 1, 0, 0, 0, 51, 52, 1, 0, 0, 0, 52, 53, 1, 0, 0,
+		0, 53, 54, 3, 4, 2, 0, 54, 3, 1, 0, 0, 0, 55, 60, 3, 6, 3, 0, 56, 57, 5,
+		42, 0, 0, 57, 59, 3, 6, 3, 0, 58, 56, 1, 0, 0, 0, 59, 62, 1, 0, 0, 0, 60,
+		58, 1, 0, 0, 0, 60, 61, 1, 0, 0, 0, 61, 5, 1, 0, 0, 0, 62, 60, 1, 0, 0,
+		0, 63, 75, 3, 20, 10, 0, 64, 75, 3, 22, 11, 0, 65, 75, 3, 32, 16, 0, 66,
+		69, 5, 40, 0, 0, 67, 70, 3, 34, 17, 0, 68, 70, 3, 30, 15, 0, 69, 67, 1,
+		0, 0, 0, 69, 68, 1, 0, 0, 0, 70, 71, 1, 0, 0, 0, 71, 72, 5, 41, 0, 0, 72,
+		73, 5, 45, 0, 0, 73, 75, 1, 0, 0, 0, 74, 63, 1, 0, 0, 0, 74, 64, 1, 0,
+		0, 0, 74, 65, 1, 0, 0, 0, 74, 66, 1, 0, 0, 0, 75, 7, 1, 0, 0, 0, 76, 77,
+		5, 2, 0, 0, 77, 78, 3, 18, 9, 0, 78, 79, 5, 45, 0, 0, 79, 9, 1, 0, 0, 0,
+		80, 83, 5, 3, 0, 0, 81, 84, 3, 18, 9, 0, 82, 84, 5, 17, 0, 0, 83, 81, 1,
+		0, 0, 0, 83, 82, 1, 0, 0, 0, 84, 90, 1, 0, 0, 0, 85, 88, 5, 42, 0, 0, 86,
+		89, 3, 18, 9, 0, 87, 89, 5, 17, 0, 0, 88, 86, 1, 0, 0, 0, 88, 87, 1, 0,
+		0, 0, 89, 91, 1, 0, 0, 0, 90, 85, 1, 0, 0, 0, 90, 91, 1, 0, 0, 0, 91, 11,
+		1, 0, 0, 0, 92, 93, 5, 4, 0, 0, 93, 94, 3, 30, 15, 0, 94, 13, 1, 0, 0,
+		0, 95, 96, 5, 5, 0, 0, 96, 97, 3, 16, 8, 0, 97, 15, 1, 0, 0, 0, 98, 100,
+		3, 34, 17, 0, 99, 101, 7, 0, 0, 0, 100, 99, 1, 0, 0, 0, 100, 101, 1, 0,
+		0, 0, 101, 106, 1, 0, 0, 0, 102, 103, 5, 42, 0, 0, 103, 105, 3, 16, 8,
+		0, 104, 102, 1, 0, 0, 0, 105, 108, 1, 0, 0, 0, 106, 104, 1, 0, 0, 0, 106,
+		107, 1, 0, 0, 0, 107, 17, 1, 0, 0, 0, 108, 106, 1, 0, 0, 0, 109, 110, 7,
+		1, 0, 0, 110, 19, 1, 0, 0, 0, 111, 112, 7, 2, 0, 0, 112, 21, 1, 0, 0, 0,
+		113, 114, 7, 3, 0, 0, 114, 115, 3, 20, 10, 0, 115, 23, 1, 0, 0, 0, 116,
+		117, 5, 23, 0, 0, 117, 25, 1, 0, 0, 0, 118, 119, 7, 4, 0, 0, 119, 27, 1,
+		0, 0, 0, 120, 121, 7, 5, 0, 0, 121, 29, 1, 0, 0, 0, 122, 123, 6, 15, -1,
+		0, 123, 125, 5, 40, 0, 0, 124, 126, 3, 30, 15, 0, 125, 124, 1, 0, 0, 0,
+		126, 127, 1, 0, 0, 0, 127, 125, 1, 0, 0, 0, 127, 128, 1, 0, 0, 0, 128,
+		129, 1, 0, 0, 0, 129, 130, 5, 41, 0, 0, 130, 136, 1, 0, 0, 0, 131, 132,
+		3, 34, 17, 0, 132, 133, 3, 28, 14, 0, 133, 134, 3, 34, 17, 0, 134, 136,
+		1, 0, 0, 0, 135, 122, 1, 0, 0, 0, 135, 131, 1, 0, 0, 0, 136, 143, 1, 0,
+		0, 0, 137, 138, 10, 2, 0, 0, 138, 139, 3, 26, 13, 0, 139, 140, 3, 30, 15,
+		3, 140, 142, 1, 0, 0, 0, 141, 137, 1, 0, 0, 0, 142, 145, 1, 0, 0, 0, 143,
+		141, 1, 0, 0, 0, 143, 144, 1, 0, 0, 0, 144, 31, 1, 0, 0, 0, 145, 143, 1,
+		0, 0, 0, 146, 147, 5, 45, 0, 0, 147, 150, 5, 6, 0, 0, 148, 151, 3, 20,
+		10, 0, 149, 151, 3, 22, 11, 0, 150, 148, 1, 0, 0, 0, 150, 149, 1, 0, 0,
+		0, 151, 33, 1, 0, 0, 0, 152, 153, 6, 17, -1, 0, 153, 155, 5, 40, 0, 0,
+		154, 156, 3, 34, 17, 0, 155, 154, 1, 0, 0, 0, 156, 157, 1, 0, 0, 0, 157,
+		155, 1, 0, 0, 0, 157, 158, 1, 0, 0, 0, 158, 159, 1, 0, 0, 0, 159, 160,
+		5, 41, 0, 0, 160, 167, 1, 0, 0, 0, 161, 167, 3, 22, 11, 0, 162, 167, 3,
+		32, 16, 0, 163, 167, 5, 45, 0, 0, 164, 167, 3, 20, 10, 0, 165, 167, 5,
+		44, 0, 0, 166, 152, 1, 0, 0, 0, 166, 161, 1, 0, 0, 0, 166, 162, 1, 0, 0,
+		0, 166, 163, 1, 0, 0, 0, 166, 164, 1, 0, 0, 0, 166, 165, 1, 0, 0, 0, 167,
+		176, 1, 0, 0, 0, 168, 169, 10, 7, 0, 0, 169, 170, 7, 6, 0, 0, 170, 175,
+		3, 34, 17, 8, 171, 172, 10, 6, 0, 0, 172, 173, 7, 7, 0, 0, 173, 175, 3,
+		34, 17, 7, 174, 168, 1, 0, 0, 0, 174, 171, 1, 0, 0, 0, 175, 178, 1, 0,
+		0, 0, 176, 174, 1, 0, 0, 0, 176, 177, 1, 0, 0, 0, 177, 35, 1, 0, 0, 0,
+		178, 176, 1, 0, 0, 0, 20, 39, 42, 45, 51, 60, 69, 74, 83, 88, 90, 100,
+		106, 127, 135, 143, 150, 157, 166, 174, 176,
 	}
 	deserializer := antlr.NewATNDeserializer(nil)
 	staticData.atn = deserializer.Deserialize(staticData.serializedATN)
@@ -237,9 +237,10 @@ const (
 	pgqlParserRULE_aggregateFunction  = 11
 	pgqlParserRULE_sequentialFunction = 12
 	pgqlParserRULE_logicalOperator    = 13
-	pgqlParserRULE_predicate          = 14
-	pgqlParserRULE_specificity        = 15
-	pgqlParserRULE_expr               = 16
+	pgqlParserRULE_comparisonOperator = 14
+	pgqlParserRULE_predicate          = 15
+	pgqlParserRULE_specificity        = 16
+	pgqlParserRULE_expr               = 17
 )
 
 // IStatementContext is an interface to support dynamic dispatch.
@@ -402,14 +403,14 @@ func (p *pgqlParser) Statement() (localctx IStatementContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(34)
+		p.SetState(36)
 		p.ShowClause()
 	}
 	{
-		p.SetState(35)
+		p.SetState(37)
 		p.ForClause()
 	}
-	p.SetState(37)
+	p.SetState(39)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -418,12 +419,12 @@ func (p *pgqlParser) Statement() (localctx IStatementContext) {
 
 	if _la == pgqlParserT__2 {
 		{
-			p.SetState(36)
+			p.SetState(38)
 			p.ByClause()
 		}
 
 	}
-	p.SetState(40)
+	p.SetState(42)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -432,12 +433,12 @@ func (p *pgqlParser) Statement() (localctx IStatementContext) {
 
 	if _la == pgqlParserT__3 {
 		{
-			p.SetState(39)
+			p.SetState(41)
 			p.WhereClause()
 		}
 
 	}
-	p.SetState(43)
+	p.SetState(45)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -446,13 +447,13 @@ func (p *pgqlParser) Statement() (localctx IStatementContext) {
 
 	if _la == pgqlParserT__4 {
 		{
-			p.SetState(42)
+			p.SetState(44)
 			p.SortByClause()
 		}
 
 	}
 	{
-		p.SetState(45)
+		p.SetState(47)
 		p.Match(pgqlParserEOF)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -577,14 +578,14 @@ func (p *pgqlParser) ShowClause() (localctx IShowClauseContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(47)
+		p.SetState(49)
 		p.Match(pgqlParserT__0)
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
 		}
 	}
-	p.SetState(49)
+	p.SetState(51)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -593,13 +594,13 @@ func (p *pgqlParser) ShowClause() (localctx IShowClauseContext) {
 
 	if _la == pgqlParserRUNNING {
 		{
-			p.SetState(48)
+			p.SetState(50)
 			p.SequentialFunction()
 		}
 
 	}
 	{
-		p.SetState(51)
+		p.SetState(53)
 		p.ShowBody()
 	}
 
@@ -739,10 +740,10 @@ func (p *pgqlParser) ShowBody() (localctx IShowBodyContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(53)
+		p.SetState(55)
 		p.ShowFragment()
 	}
-	p.SetState(58)
+	p.SetState(60)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -751,7 +752,7 @@ func (p *pgqlParser) ShowBody() (localctx IShowBodyContext) {
 
 	for _la == pgqlParserCOMMA {
 		{
-			p.SetState(54)
+			p.SetState(56)
 			p.Match(pgqlParserCOMMA)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -759,11 +760,11 @@ func (p *pgqlParser) ShowBody() (localctx IShowBodyContext) {
 			}
 		}
 		{
-			p.SetState(55)
+			p.SetState(57)
 			p.ShowFragment()
 		}
 
-		p.SetState(60)
+		p.SetState(62)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 			goto errorExit
@@ -950,7 +951,7 @@ func (s *ShowFragmentContext) Accept(visitor antlr.ParseTreeVisitor) interface{}
 func (p *pgqlParser) ShowFragment() (localctx IShowFragmentContext) {
 	localctx = NewShowFragmentContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 6, pgqlParserRULE_showFragment)
-	p.SetState(72)
+	p.SetState(74)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -960,35 +961,35 @@ func (p *pgqlParser) ShowFragment() (localctx IShowFragmentContext) {
 	case pgqlParserKILLS, pgqlParserDAMAGE, pgqlParserASSISTS, pgqlParserRESCUES, pgqlParserRECALLS, pgqlParserWIN, pgqlParserTOTALWINS, pgqlParserTOTALLOSES, pgqlParserGAMECOUNT:
 		p.EnterOuterAlt(localctx, 1)
 		{
-			p.SetState(61)
+			p.SetState(63)
 			p.Measure()
 		}
 
 	case pgqlParserAVERAGE, pgqlParserTOTAL, pgqlParserMIN, pgqlParserMAX:
 		p.EnterOuterAlt(localctx, 2)
 		{
-			p.SetState(62)
+			p.SetState(64)
 			p.AggregateFunction()
 		}
 
 	case pgqlParserIDENTIFIER:
 		p.EnterOuterAlt(localctx, 3)
 		{
-			p.SetState(63)
+			p.SetState(65)
 			p.Specificity()
 		}
 
 	case pgqlParserLPAREN:
 		p.EnterOuterAlt(localctx, 4)
 		{
-			p.SetState(64)
+			p.SetState(66)
 			p.Match(pgqlParserLPAREN)
 			if p.HasError() {
 				// Recognition error - abort rule
 				goto errorExit
 			}
 		}
-		p.SetState(67)
+		p.SetState(69)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 			goto errorExit
@@ -997,13 +998,13 @@ func (p *pgqlParser) ShowFragment() (localctx IShowFragmentContext) {
 		switch p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 5, p.GetParserRuleContext()) {
 		case 1:
 			{
-				p.SetState(65)
+				p.SetState(67)
 				p.expr(0)
 			}
 
 		case 2:
 			{
-				p.SetState(66)
+				p.SetState(68)
 				p.predicate(0)
 			}
 
@@ -1011,7 +1012,7 @@ func (p *pgqlParser) ShowFragment() (localctx IShowFragmentContext) {
 			goto errorExit
 		}
 		{
-			p.SetState(69)
+			p.SetState(71)
 			p.Match(pgqlParserRPAREN)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -1019,7 +1020,7 @@ func (p *pgqlParser) ShowFragment() (localctx IShowFragmentContext) {
 			}
 		}
 		{
-			p.SetState(70)
+			p.SetState(72)
 			p.Match(pgqlParserIDENTIFIER)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -1135,7 +1136,7 @@ func (p *pgqlParser) ForClause() (localctx IForClauseContext) {
 	p.EnterRule(localctx, 8, pgqlParserRULE_forClause)
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(74)
+		p.SetState(76)
 		p.Match(pgqlParserT__1)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -1143,11 +1144,11 @@ func (p *pgqlParser) ForClause() (localctx IForClauseContext) {
 		}
 	}
 	{
-		p.SetState(75)
+		p.SetState(77)
 		p.Dimension()
 	}
 	{
-		p.SetState(76)
+		p.SetState(78)
 		p.Match(pgqlParserIDENTIFIER)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -1296,14 +1297,14 @@ func (p *pgqlParser) ByClause() (localctx IByClauseContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(78)
+		p.SetState(80)
 		p.Match(pgqlParserT__2)
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
 		}
 	}
-	p.SetState(81)
+	p.SetState(83)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -1312,13 +1313,13 @@ func (p *pgqlParser) ByClause() (localctx IByClauseContext) {
 	switch p.GetTokenStream().LA(1) {
 	case pgqlParserPLAYER, pgqlParserTEAM, pgqlParserDATE, pgqlParserTYPE, pgqlParserWIN:
 		{
-			p.SetState(79)
+			p.SetState(81)
 			p.Dimension()
 		}
 
 	case pgqlParserGAME:
 		{
-			p.SetState(80)
+			p.SetState(82)
 			p.Match(pgqlParserGAME)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -1330,7 +1331,7 @@ func (p *pgqlParser) ByClause() (localctx IByClauseContext) {
 		p.SetError(antlr.NewNoViableAltException(p, nil, nil, nil, nil, nil))
 		goto errorExit
 	}
-	p.SetState(88)
+	p.SetState(90)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -1339,14 +1340,14 @@ func (p *pgqlParser) ByClause() (localctx IByClauseContext) {
 
 	if _la == pgqlParserCOMMA {
 		{
-			p.SetState(83)
+			p.SetState(85)
 			p.Match(pgqlParserCOMMA)
 			if p.HasError() {
 				// Recognition error - abort rule
 				goto errorExit
 			}
 		}
-		p.SetState(86)
+		p.SetState(88)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 			goto errorExit
@@ -1355,13 +1356,13 @@ func (p *pgqlParser) ByClause() (localctx IByClauseContext) {
 		switch p.GetTokenStream().LA(1) {
 		case pgqlParserPLAYER, pgqlParserTEAM, pgqlParserDATE, pgqlParserTYPE, pgqlParserWIN:
 			{
-				p.SetState(84)
+				p.SetState(86)
 				p.Dimension()
 			}
 
 		case pgqlParserGAME:
 			{
-				p.SetState(85)
+				p.SetState(87)
 				p.Match(pgqlParserGAME)
 				if p.HasError() {
 					// Recognition error - abort rule
@@ -1397,8 +1398,7 @@ type IWhereClauseContext interface {
 	GetParser() antlr.Parser
 
 	// Getter signatures
-	AllPredicate() []IPredicateContext
-	Predicate(i int) IPredicateContext
+	Predicate() IPredicateContext
 
 	// IsWhereClauseContext differentiates from other interfaces.
 	IsWhereClauseContext()
@@ -1436,37 +1436,12 @@ func NewWhereClauseContext(parser antlr.Parser, parent antlr.ParserRuleContext, 
 
 func (s *WhereClauseContext) GetParser() antlr.Parser { return s.parser }
 
-func (s *WhereClauseContext) AllPredicate() []IPredicateContext {
-	children := s.GetChildren()
-	len := 0
-	for _, ctx := range children {
-		if _, ok := ctx.(IPredicateContext); ok {
-			len++
-		}
-	}
-
-	tst := make([]IPredicateContext, len)
-	i := 0
-	for _, ctx := range children {
-		if t, ok := ctx.(IPredicateContext); ok {
-			tst[i] = t.(IPredicateContext)
-			i++
-		}
-	}
-
-	return tst
-}
-
-func (s *WhereClauseContext) Predicate(i int) IPredicateContext {
+func (s *WhereClauseContext) Predicate() IPredicateContext {
 	var t antlr.RuleContext
-	j := 0
 	for _, ctx := range s.GetChildren() {
 		if _, ok := ctx.(IPredicateContext); ok {
-			if j == i {
-				t = ctx.(antlr.RuleContext)
-				break
-			}
-			j++
+			t = ctx.(antlr.RuleContext)
+			break
 		}
 	}
 
@@ -1498,36 +1473,18 @@ func (s *WhereClauseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} 
 func (p *pgqlParser) WhereClause() (localctx IWhereClauseContext) {
 	localctx = NewWhereClauseContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 12, pgqlParserRULE_whereClause)
-	var _la int
-
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(90)
+		p.SetState(92)
 		p.Match(pgqlParserT__3)
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
 		}
 	}
-	p.SetState(92)
-	p.GetErrorHandler().Sync(p)
-	if p.HasError() {
-		goto errorExit
-	}
-	_la = p.GetTokenStream().LA(1)
-
-	for ok := true; ok; ok = ((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&53876323383296) != 0) {
-		{
-			p.SetState(91)
-			p.predicate(0)
-		}
-
-		p.SetState(94)
-		p.GetErrorHandler().Sync(p)
-		if p.HasError() {
-			goto errorExit
-		}
-		_la = p.GetTokenStream().LA(1)
+	{
+		p.SetState(93)
+		p.predicate(0)
 	}
 
 errorExit:
@@ -1628,7 +1585,7 @@ func (p *pgqlParser) SortByClause() (localctx ISortByClauseContext) {
 	p.EnterRule(localctx, 14, pgqlParserRULE_sortByClause)
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(96)
+		p.SetState(95)
 		p.Match(pgqlParserT__4)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -1636,7 +1593,7 @@ func (p *pgqlParser) SortByClause() (localctx ISortByClauseContext) {
 		}
 	}
 	{
-		p.SetState(97)
+		p.SetState(96)
 		p.SortBody()
 	}
 
@@ -1805,10 +1762,10 @@ func (p *pgqlParser) SortBody() (localctx ISortBodyContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(99)
+		p.SetState(98)
 		p.expr(0)
 	}
-	p.SetState(101)
+	p.SetState(100)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -1817,7 +1774,7 @@ func (p *pgqlParser) SortBody() (localctx ISortBodyContext) {
 
 	if _la == pgqlParserDESC || _la == pgqlParserASC {
 		{
-			p.SetState(100)
+			p.SetState(99)
 			_la = p.GetTokenStream().LA(1)
 
 			if !(_la == pgqlParserDESC || _la == pgqlParserASC) {
@@ -1829,19 +1786,19 @@ func (p *pgqlParser) SortBody() (localctx ISortBodyContext) {
 		}
 
 	}
-	p.SetState(107)
+	p.SetState(106)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
 	}
-	_alt = p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 12, p.GetParserRuleContext())
+	_alt = p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 11, p.GetParserRuleContext())
 	if p.HasError() {
 		goto errorExit
 	}
 	for _alt != 2 && _alt != antlr.ATNInvalidAltNumber {
 		if _alt == 1 {
 			{
-				p.SetState(103)
+				p.SetState(102)
 				p.Match(pgqlParserCOMMA)
 				if p.HasError() {
 					// Recognition error - abort rule
@@ -1849,17 +1806,17 @@ func (p *pgqlParser) SortBody() (localctx ISortBodyContext) {
 				}
 			}
 			{
-				p.SetState(104)
+				p.SetState(103)
 				p.SortBody()
 			}
 
 		}
-		p.SetState(109)
+		p.SetState(108)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 			goto errorExit
 		}
-		_alt = p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 12, p.GetParserRuleContext())
+		_alt = p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 11, p.GetParserRuleContext())
 		if p.HasError() {
 			goto errorExit
 		}
@@ -1973,7 +1930,7 @@ func (p *pgqlParser) Dimension() (localctx IDimensionContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(110)
+		p.SetState(109)
 		_la = p.GetTokenStream().LA(1)
 
 		if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&67456) != 0) {
@@ -2112,7 +2069,7 @@ func (p *pgqlParser) Measure() (localctx IMeasureContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(112)
+		p.SetState(111)
 		_la = p.GetTokenStream().LA(1)
 
 		if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&1964032) != 0) {
@@ -2243,7 +2200,7 @@ func (p *pgqlParser) AggregateFunction() (localctx IAggregateFunctionContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(114)
+		p.SetState(113)
 		_la = p.GetTokenStream().LA(1)
 
 		if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&251658240) != 0) {
@@ -2254,7 +2211,7 @@ func (p *pgqlParser) AggregateFunction() (localctx IAggregateFunctionContext) {
 		}
 	}
 	{
-		p.SetState(115)
+		p.SetState(114)
 		p.Measure()
 	}
 
@@ -2344,7 +2301,7 @@ func (p *pgqlParser) SequentialFunction() (localctx ISequentialFunctionContext) 
 	p.EnterRule(localctx, 24, pgqlParserRULE_sequentialFunction)
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(117)
+		p.SetState(116)
 		p.Match(pgqlParserRUNNING)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -2445,10 +2402,134 @@ func (p *pgqlParser) LogicalOperator() (localctx ILogicalOperatorContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(119)
+		p.SetState(118)
 		_la = p.GetTokenStream().LA(1)
 
 		if !(_la == pgqlParserLOGICALAND || _la == pgqlParserLOGICALOR) {
+			p.GetErrorHandler().RecoverInline(p)
+		} else {
+			p.GetErrorHandler().ReportMatch(p)
+			p.Consume()
+		}
+	}
+
+errorExit:
+	if p.HasError() {
+		v := p.GetError()
+		localctx.SetException(v)
+		p.GetErrorHandler().ReportError(p, v)
+		p.GetErrorHandler().Recover(p, v)
+		p.SetError(nil)
+	}
+	p.ExitRule()
+	return localctx
+	goto errorExit // Trick to prevent compiler error if the label is not used
+}
+
+// IComparisonOperatorContext is an interface to support dynamic dispatch.
+type IComparisonOperatorContext interface {
+	antlr.ParserRuleContext
+
+	// GetParser returns the parser.
+	GetParser() antlr.Parser
+
+	// Getter signatures
+	LESSER() antlr.TerminalNode
+	GREATER() antlr.TerminalNode
+	LESSEREQUAL() antlr.TerminalNode
+	GREATEREQUAL() antlr.TerminalNode
+	EQUAL() antlr.TerminalNode
+	NOTEQUAL() antlr.TerminalNode
+
+	// IsComparisonOperatorContext differentiates from other interfaces.
+	IsComparisonOperatorContext()
+}
+
+type ComparisonOperatorContext struct {
+	antlr.BaseParserRuleContext
+	parser antlr.Parser
+}
+
+func NewEmptyComparisonOperatorContext() *ComparisonOperatorContext {
+	var p = new(ComparisonOperatorContext)
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.RuleIndex = pgqlParserRULE_comparisonOperator
+	return p
+}
+
+func InitEmptyComparisonOperatorContext(p *ComparisonOperatorContext) {
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.RuleIndex = pgqlParserRULE_comparisonOperator
+}
+
+func (*ComparisonOperatorContext) IsComparisonOperatorContext() {}
+
+func NewComparisonOperatorContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ComparisonOperatorContext {
+	var p = new(ComparisonOperatorContext)
+
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
+
+	p.parser = parser
+	p.RuleIndex = pgqlParserRULE_comparisonOperator
+
+	return p
+}
+
+func (s *ComparisonOperatorContext) GetParser() antlr.Parser { return s.parser }
+
+func (s *ComparisonOperatorContext) LESSER() antlr.TerminalNode {
+	return s.GetToken(pgqlParserLESSER, 0)
+}
+
+func (s *ComparisonOperatorContext) GREATER() antlr.TerminalNode {
+	return s.GetToken(pgqlParserGREATER, 0)
+}
+
+func (s *ComparisonOperatorContext) LESSEREQUAL() antlr.TerminalNode {
+	return s.GetToken(pgqlParserLESSEREQUAL, 0)
+}
+
+func (s *ComparisonOperatorContext) GREATEREQUAL() antlr.TerminalNode {
+	return s.GetToken(pgqlParserGREATEREQUAL, 0)
+}
+
+func (s *ComparisonOperatorContext) EQUAL() antlr.TerminalNode {
+	return s.GetToken(pgqlParserEQUAL, 0)
+}
+
+func (s *ComparisonOperatorContext) NOTEQUAL() antlr.TerminalNode {
+	return s.GetToken(pgqlParserNOTEQUAL, 0)
+}
+
+func (s *ComparisonOperatorContext) GetRuleContext() antlr.RuleContext {
+	return s
+}
+
+func (s *ComparisonOperatorContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) string {
+	return antlr.TreesStringTree(s, ruleNames, recog)
+}
+
+func (s *ComparisonOperatorContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case pgqlVisitor:
+		return t.VisitComparisonOperator(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
+func (p *pgqlParser) ComparisonOperator() (localctx IComparisonOperatorContext) {
+	localctx = NewComparisonOperatorContext(p, p.GetParserRuleContext(), p.GetState())
+	p.EnterRule(localctx, 28, pgqlParserRULE_comparisonOperator)
+	var _la int
+
+	p.EnterOuterAlt(localctx, 1)
+	{
+		p.SetState(120)
+		_la = p.GetTokenStream().LA(1)
+
+		if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&16911433728) != 0) {
 			p.GetErrorHandler().RecoverInline(p)
 		} else {
 			p.GetErrorHandler().ReportMatch(p)
@@ -2483,12 +2564,7 @@ type IPredicateContext interface {
 	Predicate(i int) IPredicateContext
 	AllExpr() []IExprContext
 	Expr(i int) IExprContext
-	LESSER() antlr.TerminalNode
-	GREATER() antlr.TerminalNode
-	LESSEREQUAL() antlr.TerminalNode
-	GREATEREQUAL() antlr.TerminalNode
-	EQUAL() antlr.TerminalNode
-	NOTEQUAL() antlr.TerminalNode
+	ComparisonOperator() IComparisonOperatorContext
 	LogicalOperator() ILogicalOperatorContext
 
 	// IsPredicateContext differentiates from other interfaces.
@@ -2617,28 +2693,20 @@ func (s *PredicateContext) Expr(i int) IExprContext {
 	return t.(IExprContext)
 }
 
-func (s *PredicateContext) LESSER() antlr.TerminalNode {
-	return s.GetToken(pgqlParserLESSER, 0)
-}
+func (s *PredicateContext) ComparisonOperator() IComparisonOperatorContext {
+	var t antlr.RuleContext
+	for _, ctx := range s.GetChildren() {
+		if _, ok := ctx.(IComparisonOperatorContext); ok {
+			t = ctx.(antlr.RuleContext)
+			break
+		}
+	}
 
-func (s *PredicateContext) GREATER() antlr.TerminalNode {
-	return s.GetToken(pgqlParserGREATER, 0)
-}
+	if t == nil {
+		return nil
+	}
 
-func (s *PredicateContext) LESSEREQUAL() antlr.TerminalNode {
-	return s.GetToken(pgqlParserLESSEREQUAL, 0)
-}
-
-func (s *PredicateContext) GREATEREQUAL() antlr.TerminalNode {
-	return s.GetToken(pgqlParserGREATEREQUAL, 0)
-}
-
-func (s *PredicateContext) EQUAL() antlr.TerminalNode {
-	return s.GetToken(pgqlParserEQUAL, 0)
-}
-
-func (s *PredicateContext) NOTEQUAL() antlr.TerminalNode {
-	return s.GetToken(pgqlParserNOTEQUAL, 0)
+	return t.(IComparisonOperatorContext)
 }
 
 func (s *PredicateContext) LogicalOperator() ILogicalOperatorContext {
@@ -2686,30 +2754,30 @@ func (p *pgqlParser) predicate(_p int) (localctx IPredicateContext) {
 	localctx = NewPredicateContext(p, p.GetParserRuleContext(), _parentState)
 	var _prevctx IPredicateContext = localctx
 	var _ antlr.ParserRuleContext = _prevctx // TODO: To prevent unused variable warning.
-	_startState := 28
-	p.EnterRecursionRule(localctx, 28, pgqlParserRULE_predicate, _p)
+	_startState := 30
+	p.EnterRecursionRule(localctx, 30, pgqlParserRULE_predicate, _p)
 	var _la int
 
 	var _alt int
 
 	p.EnterOuterAlt(localctx, 1)
-	p.SetState(134)
+	p.SetState(135)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
 	}
 
-	switch p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 14, p.GetParserRuleContext()) {
+	switch p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 13, p.GetParserRuleContext()) {
 	case 1:
 		{
-			p.SetState(122)
+			p.SetState(123)
 			p.Match(pgqlParserLPAREN)
 			if p.HasError() {
 				// Recognition error - abort rule
 				goto errorExit
 			}
 		}
-		p.SetState(124)
+		p.SetState(125)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 			goto errorExit
@@ -2718,11 +2786,11 @@ func (p *pgqlParser) predicate(_p int) (localctx IPredicateContext) {
 
 		for ok := true; ok; ok = ((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&53876323383296) != 0) {
 			{
-				p.SetState(123)
+				p.SetState(124)
 				p.predicate(0)
 			}
 
-			p.SetState(126)
+			p.SetState(127)
 			p.GetErrorHandler().Sync(p)
 			if p.HasError() {
 				goto errorExit
@@ -2730,7 +2798,7 @@ func (p *pgqlParser) predicate(_p int) (localctx IPredicateContext) {
 			_la = p.GetTokenStream().LA(1)
 		}
 		{
-			p.SetState(128)
+			p.SetState(129)
 			p.Match(pgqlParserRPAREN)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -2740,22 +2808,15 @@ func (p *pgqlParser) predicate(_p int) (localctx IPredicateContext) {
 
 	case 2:
 		{
-			p.SetState(130)
+			p.SetState(131)
 			p.expr(0)
 		}
 		{
-			p.SetState(131)
-			_la = p.GetTokenStream().LA(1)
-
-			if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&16911433728) != 0) {
-				p.GetErrorHandler().RecoverInline(p)
-			} else {
-				p.GetErrorHandler().ReportMatch(p)
-				p.Consume()
-			}
+			p.SetState(132)
+			p.ComparisonOperator()
 		}
 		{
-			p.SetState(132)
+			p.SetState(133)
 			p.expr(0)
 		}
 
@@ -2763,12 +2824,12 @@ func (p *pgqlParser) predicate(_p int) (localctx IPredicateContext) {
 		goto errorExit
 	}
 	p.GetParserRuleContext().SetStop(p.GetTokenStream().LT(-1))
-	p.SetState(142)
+	p.SetState(143)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
 	}
-	_alt = p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 15, p.GetParserRuleContext())
+	_alt = p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 14, p.GetParserRuleContext())
 	if p.HasError() {
 		goto errorExit
 	}
@@ -2780,28 +2841,28 @@ func (p *pgqlParser) predicate(_p int) (localctx IPredicateContext) {
 			_prevctx = localctx
 			localctx = NewPredicateContext(p, _parentctx, _parentState)
 			p.PushNewRecursionContext(localctx, _startState, pgqlParserRULE_predicate)
-			p.SetState(136)
+			p.SetState(137)
 
 			if !(p.Precpred(p.GetParserRuleContext(), 2)) {
 				p.SetError(antlr.NewFailedPredicateException(p, "p.Precpred(p.GetParserRuleContext(), 2)", ""))
 				goto errorExit
 			}
 			{
-				p.SetState(137)
+				p.SetState(138)
 				p.LogicalOperator()
 			}
 			{
-				p.SetState(138)
+				p.SetState(139)
 				p.predicate(3)
 			}
 
 		}
-		p.SetState(144)
+		p.SetState(145)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 			goto errorExit
 		}
-		_alt = p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 15, p.GetParserRuleContext())
+		_alt = p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 14, p.GetParserRuleContext())
 		if p.HasError() {
 			goto errorExit
 		}
@@ -2924,10 +2985,10 @@ func (s *SpecificityContext) Accept(visitor antlr.ParseTreeVisitor) interface{} 
 
 func (p *pgqlParser) Specificity() (localctx ISpecificityContext) {
 	localctx = NewSpecificityContext(p, p.GetParserRuleContext(), p.GetState())
-	p.EnterRule(localctx, 30, pgqlParserRULE_specificity)
+	p.EnterRule(localctx, 32, pgqlParserRULE_specificity)
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(145)
+		p.SetState(146)
 		p.Match(pgqlParserIDENTIFIER)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -2935,14 +2996,14 @@ func (p *pgqlParser) Specificity() (localctx ISpecificityContext) {
 		}
 	}
 	{
-		p.SetState(146)
+		p.SetState(147)
 		p.Match(pgqlParserT__5)
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
 		}
 	}
-	p.SetState(149)
+	p.SetState(150)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -2951,13 +3012,13 @@ func (p *pgqlParser) Specificity() (localctx ISpecificityContext) {
 	switch p.GetTokenStream().LA(1) {
 	case pgqlParserKILLS, pgqlParserDAMAGE, pgqlParserASSISTS, pgqlParserRESCUES, pgqlParserRECALLS, pgqlParserWIN, pgqlParserTOTALWINS, pgqlParserTOTALLOSES, pgqlParserGAMECOUNT:
 		{
-			p.SetState(147)
+			p.SetState(148)
 			p.Measure()
 		}
 
 	case pgqlParserAVERAGE, pgqlParserTOTAL, pgqlParserMIN, pgqlParserMAX:
 		{
-			p.SetState(148)
+			p.SetState(149)
 			p.AggregateFunction()
 		}
 
@@ -3187,30 +3248,30 @@ func (p *pgqlParser) expr(_p int) (localctx IExprContext) {
 	localctx = NewExprContext(p, p.GetParserRuleContext(), _parentState)
 	var _prevctx IExprContext = localctx
 	var _ antlr.ParserRuleContext = _prevctx // TODO: To prevent unused variable warning.
-	_startState := 32
-	p.EnterRecursionRule(localctx, 32, pgqlParserRULE_expr, _p)
+	_startState := 34
+	p.EnterRecursionRule(localctx, 34, pgqlParserRULE_expr, _p)
 	var _la int
 
 	var _alt int
 
 	p.EnterOuterAlt(localctx, 1)
-	p.SetState(165)
+	p.SetState(166)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
 	}
 
-	switch p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 18, p.GetParserRuleContext()) {
+	switch p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 17, p.GetParserRuleContext()) {
 	case 1:
 		{
-			p.SetState(152)
+			p.SetState(153)
 			p.Match(pgqlParserLPAREN)
 			if p.HasError() {
 				// Recognition error - abort rule
 				goto errorExit
 			}
 		}
-		p.SetState(154)
+		p.SetState(155)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 			goto errorExit
@@ -3219,11 +3280,11 @@ func (p *pgqlParser) expr(_p int) (localctx IExprContext) {
 
 		for ok := true; ok; ok = ((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&53876323383296) != 0) {
 			{
-				p.SetState(153)
+				p.SetState(154)
 				p.expr(0)
 			}
 
-			p.SetState(156)
+			p.SetState(157)
 			p.GetErrorHandler().Sync(p)
 			if p.HasError() {
 				goto errorExit
@@ -3231,7 +3292,7 @@ func (p *pgqlParser) expr(_p int) (localctx IExprContext) {
 			_la = p.GetTokenStream().LA(1)
 		}
 		{
-			p.SetState(158)
+			p.SetState(159)
 			p.Match(pgqlParserRPAREN)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -3241,19 +3302,19 @@ func (p *pgqlParser) expr(_p int) (localctx IExprContext) {
 
 	case 2:
 		{
-			p.SetState(160)
+			p.SetState(161)
 			p.AggregateFunction()
 		}
 
 	case 3:
 		{
-			p.SetState(161)
+			p.SetState(162)
 			p.Specificity()
 		}
 
 	case 4:
 		{
-			p.SetState(162)
+			p.SetState(163)
 			p.Match(pgqlParserIDENTIFIER)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -3263,13 +3324,13 @@ func (p *pgqlParser) expr(_p int) (localctx IExprContext) {
 
 	case 5:
 		{
-			p.SetState(163)
+			p.SetState(164)
 			p.Measure()
 		}
 
 	case 6:
 		{
-			p.SetState(164)
+			p.SetState(165)
 			p.Match(pgqlParserNUMBER)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -3281,12 +3342,12 @@ func (p *pgqlParser) expr(_p int) (localctx IExprContext) {
 		goto errorExit
 	}
 	p.GetParserRuleContext().SetStop(p.GetTokenStream().LT(-1))
-	p.SetState(175)
+	p.SetState(176)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
 	}
-	_alt = p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 20, p.GetParserRuleContext())
+	_alt = p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 19, p.GetParserRuleContext())
 	if p.HasError() {
 		goto errorExit
 	}
@@ -3296,24 +3357,24 @@ func (p *pgqlParser) expr(_p int) (localctx IExprContext) {
 				p.TriggerExitRuleEvent()
 			}
 			_prevctx = localctx
-			p.SetState(173)
+			p.SetState(174)
 			p.GetErrorHandler().Sync(p)
 			if p.HasError() {
 				goto errorExit
 			}
 
-			switch p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 19, p.GetParserRuleContext()) {
+			switch p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 18, p.GetParserRuleContext()) {
 			case 1:
 				localctx = NewExprContext(p, _parentctx, _parentState)
 				p.PushNewRecursionContext(localctx, _startState, pgqlParserRULE_expr)
-				p.SetState(167)
+				p.SetState(168)
 
 				if !(p.Precpred(p.GetParserRuleContext(), 7)) {
 					p.SetError(antlr.NewFailedPredicateException(p, "p.Precpred(p.GetParserRuleContext(), 7)", ""))
 					goto errorExit
 				}
 				{
-					p.SetState(168)
+					p.SetState(169)
 					_la = p.GetTokenStream().LA(1)
 
 					if !(_la == pgqlParserMULTIPLY || _la == pgqlParserDIVIDE) {
@@ -3324,21 +3385,21 @@ func (p *pgqlParser) expr(_p int) (localctx IExprContext) {
 					}
 				}
 				{
-					p.SetState(169)
+					p.SetState(170)
 					p.expr(8)
 				}
 
 			case 2:
 				localctx = NewExprContext(p, _parentctx, _parentState)
 				p.PushNewRecursionContext(localctx, _startState, pgqlParserRULE_expr)
-				p.SetState(170)
+				p.SetState(171)
 
 				if !(p.Precpred(p.GetParserRuleContext(), 6)) {
 					p.SetError(antlr.NewFailedPredicateException(p, "p.Precpred(p.GetParserRuleContext(), 6)", ""))
 					goto errorExit
 				}
 				{
-					p.SetState(171)
+					p.SetState(172)
 					_la = p.GetTokenStream().LA(1)
 
 					if !(_la == pgqlParserSUM || _la == pgqlParserDIFFERENCE) {
@@ -3349,7 +3410,7 @@ func (p *pgqlParser) expr(_p int) (localctx IExprContext) {
 					}
 				}
 				{
-					p.SetState(172)
+					p.SetState(173)
 					p.expr(7)
 				}
 
@@ -3358,12 +3419,12 @@ func (p *pgqlParser) expr(_p int) (localctx IExprContext) {
 			}
 
 		}
-		p.SetState(177)
+		p.SetState(178)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 			goto errorExit
 		}
-		_alt = p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 20, p.GetParserRuleContext())
+		_alt = p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 19, p.GetParserRuleContext())
 		if p.HasError() {
 			goto errorExit
 		}
@@ -3384,14 +3445,14 @@ errorExit:
 
 func (p *pgqlParser) Sempred(localctx antlr.RuleContext, ruleIndex, predIndex int) bool {
 	switch ruleIndex {
-	case 14:
+	case 15:
 		var t *PredicateContext = nil
 		if localctx != nil {
 			t = localctx.(*PredicateContext)
 		}
 		return p.Predicate_Sempred(t, predIndex)
 
-	case 16:
+	case 17:
 		var t *ExprContext = nil
 		if localctx != nil {
 			t = localctx.(*ExprContext)

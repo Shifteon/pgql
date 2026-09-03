@@ -64,6 +64,10 @@ func (v *BasepgqlVisitor) VisitLogicalOperator(ctx *LogicalOperatorContext) inte
 	return v.VisitChildren(ctx)
 }
 
+func (v *BasepgqlVisitor) VisitComparisonOperator(ctx *ComparisonOperatorContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
 func (v *BasepgqlVisitor) VisitPredicate(ctx *PredicateContext) interface{} {
 	return v.VisitChildren(ctx)
 }

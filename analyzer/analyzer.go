@@ -275,8 +275,8 @@ func (a *Analyzer) VisitShowFragment(ctx *parser.ShowFragmentContext) any {
 }
 
 func (a *Analyzer) VisitWhereClause(ctx *parser.WhereClauseContext) any {
-	for _, predicate := range ctx.AllPredicate() {
-		result := a.Visit(predicate).(result)
+	if ctx.Predicate() != nil {
+		result := a.Visit(ctx.Predicate()).(result)
 		if result.err != nil {
 			return result
 		}

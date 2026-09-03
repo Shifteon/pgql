@@ -11,7 +11,7 @@ showFragment : measure | aggregateFunction | specificity | (LPAREN (expr | predi
 
 forClause : 'for' dimension IDENTIFIER;
 byClause : 'by' (dimension | GAME) (COMMA (dimension | GAME))? ;
-whereClause : 'where' predicate+ ;
+whereClause : 'where' predicate ;
 sortByClause : 'sort by' sortBody ;
 sortBody : expr (DESC | ASC)? (COMMA sortBody)* ;
 
@@ -20,10 +20,11 @@ measure : KILLS | DAMAGE | ASSISTS | RESCUES | RECALLS | WIN | TOTALLOSES | TOTA
 aggregateFunction : (AVERAGE | TOTAL | MAX | MIN) measure ;
 sequentialFunction : RUNNING ;
 logicalOperator : LOGICALAND | LOGICALOR ;
+comparisonOperator : LESSER | GREATER | LESSEREQUAL | GREATEREQUAL | EQUAL | NOTEQUAL ;
 
 predicate : LPAREN predicate+ RPAREN
           | predicate logicalOperator predicate
-          | expr (LESSER | GREATER | LESSEREQUAL | GREATEREQUAL | EQUAL | NOTEQUAL) expr ;
+          | expr comparisonOperator expr ;
 specificity : IDENTIFIER':'(measure | aggregateFunction) ;
 
 expr : LPAREN expr+ RPAREN
