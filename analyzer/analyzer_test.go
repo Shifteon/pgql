@@ -126,6 +126,11 @@ for team it`
 for player ben`
 	specificity := `show ben:kills
 for team ib`
+	invalidExpression := `show (average kills / 5) avg
+for team it
+by player, game`
+	invalidPredicate := `show (nope > 5) yep
+for team it`
 
 	tests := testCases{
 		{"valid show", validShow, ""},
@@ -136,6 +141,8 @@ for team ib`
 		{"duplicate identifier", duplicateIdentifier, "Identifier \"yep\" already used!"},
 		{"predicate", predicate, ""},
 		{"specificity", specificity, ""},
+		{"invalid expression", invalidExpression, "Cannot use aggregate functions in a scalar statement!"},
+		{"invalid predicate", invalidPredicate, "Undeclared identifer: \"nope\""},
 	}
 
 	runTests(t, tests)
@@ -178,24 +185,29 @@ where average damage > 4`
 func TestSpecificity(t *testing.T) {
 	valid := `show ben:kills
 for team ib`
-	playerAndPlayer := `show ben:kills
-for player cody`
 	teamAndTeam := `show ib:kills
 for team ic`
 	invalidIdentifier := `show nope:kills
 for team ic`
 	teamDoesNotHavePlayer := `show ben:kills
 for team ic`
-	playerNotOnTeam := `show ic:kills
-for player ben`
+	inShowClauseOfPlayerStatement := `show g:kills
+for player isaac`
+	invalidTypeInPlayerStatement := `show kills
+for player ben
+where ic:kills > 2`
+	validInPlayerStatement := `show kills
+for player ben
+where g:kills > 4`
 
 	tests := testCases{
 		{"valid specificity", valid, ""},
-		{"player and player", playerAndPlayer, "Player identifier cannot be used in specificity when player is already used in the FOR clause!"},
-		{"team and team", teamAndTeam, "Team identifier cannot be used in specificity when team is already used in the FOR clause!"},
-		{"invalid identifier", invalidIdentifier, "Identifier in specificity cannot be mapped to a player or team!"},
+		{"team and team", teamAndTeam, "Identifier in specificity cannot be mapped to a player! Got: ib. Expected one of"},
+		{"invalid identifier", invalidIdentifier, "Identifier in specificity cannot be mapped to a player! Got: nope. Expected one of"},
 		{"team does not have player", teamDoesNotHavePlayer, "Player \"ben\" is not on Team \"ic\"!"},
-		{"player not on team", playerNotOnTeam, "Player \"ben\" is not on Team \"ic\"!"},
+		{"in show clause of player statement", inShowClauseOfPlayerStatement, "Specificity cannot be used in the SHOW clause of a statement with \"FOR player\""},
+		{"invalid type in player statement", invalidTypeInPlayerStatement, "Invalid specificity type used in a statement with \"FOR player\". Got ic."},
+		{"valid in player statement", validInPlayerStatement, ""},
 	}
 
 	runTests(t, tests)

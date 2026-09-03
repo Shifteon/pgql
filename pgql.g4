@@ -24,7 +24,7 @@ logicalOperator : LOGICALAND | LOGICALOR ;
 predicate : LPAREN predicate+ RPAREN
           | predicate logicalOperator predicate
           | expr (LESSER | GREATER | LESSEREQUAL | GREATEREQUAL | EQUAL | NOTEQUAL) expr ;
-specificity : IDENTIFIER':'measure ;
+specificity : IDENTIFIER':'(measure | aggregateFunction) ;
 
 expr : LPAREN expr+ RPAREN
      | expr (MULTIPLY | DIVIDE) expr
