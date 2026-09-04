@@ -60,10 +60,6 @@ func (v *BasepgqlVisitor) VisitSequentialFunction(ctx *SequentialFunctionContext
 	return v.VisitChildren(ctx)
 }
 
-func (v *BasepgqlVisitor) VisitLogicalOperator(ctx *LogicalOperatorContext) interface{} {
-	return v.VisitChildren(ctx)
-}
-
 func (v *BasepgqlVisitor) VisitComparisonOperator(ctx *ComparisonOperatorContext) interface{} {
 	return v.VisitChildren(ctx)
 }

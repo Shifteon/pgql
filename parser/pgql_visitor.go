@@ -47,9 +47,6 @@ type pgqlVisitor interface {
 	// Visit a parse tree produced by pgqlParser#sequentialFunction.
 	VisitSequentialFunction(ctx *SequentialFunctionContext) interface{}
 
-	// Visit a parse tree produced by pgqlParser#logicalOperator.
-	VisitLogicalOperator(ctx *LogicalOperatorContext) interface{}
-
 	// Visit a parse tree produced by pgqlParser#comparisonOperator.
 	VisitComparisonOperator(ctx *ComparisonOperatorContext) interface{}
 

@@ -19,11 +19,11 @@ dimension : PLAYER | TEAM | DATE | TYPE | WIN ;
 measure : KILLS | DAMAGE | ASSISTS | RESCUES | RECALLS | WIN | TOTALLOSES | TOTALWINS | GAMECOUNT ;
 aggregateFunction : (AVERAGE | TOTAL | MAX | MIN) measure ;
 sequentialFunction : RUNNING ;
-logicalOperator : LOGICALAND | LOGICALOR ;
 comparisonOperator : LESSER | GREATER | LESSEREQUAL | GREATEREQUAL | EQUAL | NOTEQUAL ;
 
-predicate : LPAREN predicate+ RPAREN
-          | predicate logicalOperator predicate
+predicate : LPAREN predicate RPAREN
+          | predicate LOGICALAND predicate
+          | predicate LOGICALOR predicate
           | expr comparisonOperator expr ;
 specificity : IDENTIFIER':'(measure | aggregateFunction) ;
 
