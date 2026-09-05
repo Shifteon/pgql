@@ -1,0 +1,25 @@
+version: '3'
+
+tasks:
+  test:
+    desc: Run tests. Usage -> task test -- [package_path]
+    summary: |
+      Runs all tests in the project by default. 
+      To run a specific package, pass it after a double dash.
+      Example: task test -- ./pkg/auth
+    cmds:
+      - go test {{.CLI_ARGS | default "./..."}}
+
+  test:run:
+    desc: Run a specific test by name. Usage -> task test:run name=[TestName]
+    vars:
+      NAME: '{{default ".*" .name}}'
+    cmds:
+      - go test ./... -run "{{.NAME}}"
+
+  test:cover:
+    desc: Run coverage for a package. Usage -> task test:cover -- [package_path]
+    cmds:
+      - go test -coverprofile coverage.out {{.CLI_ARGS | default "./..."}}
+      - go tool cover -html coverage.out
+      - defer: rm -f coverage.out

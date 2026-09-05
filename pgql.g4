@@ -21,7 +21,9 @@ aggregateFunction : (AVERAGE | TOTAL | MAX | MIN) measure ;
 sequentialFunction : RUNNING ;
 comparisonOperator : LESSER | GREATER | LESSEREQUAL | GREATEREQUAL | EQUAL | NOTEQUAL ;
 
+/* TODO: support direct boolean expressions. Such as where win or where not win */
 predicate : LPAREN predicate RPAREN
+          | LOGICALNOT predicate
           | predicate LOGICALAND predicate
           | predicate LOGICALOR predicate
           | expr comparisonOperator expr ;
@@ -80,6 +82,7 @@ DIVIDE : '/' ;
 
 LOGICALAND : 'and' ;
 LOGICALOR : 'or' ;
+LOGICALNOT : 'not' ;
 
 LPAREN : '(' ;
 RPAREN : ')' ;
