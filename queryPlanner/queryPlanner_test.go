@@ -17,11 +17,20 @@ func buildStream(input string) *antlr.CommonTokenStream {
 	return stream
 }
 
+func assertEquality(t *testing.T, a interface{}, b interface{}) {
+	if diff := cmp.Diff(a, b); diff != "" {
+		t.Errorf("Expression mismatch (-expected +got):\n%s", diff)
+	}
+}
+
+// TODO: Add tests for PlanQuery
+
 type predicateTestCase struct {
 	input             string
 	expectedPredicate Predicate
 }
 
+// TODO: Make these tests more like the expression ones so I just call visit predicate
 func TestPredicate(t *testing.T) {
 	singlePredicateStatement := `show kills
 for team ic
@@ -112,9 +121,7 @@ where (rescues != 2 or damage >= 900) and kills <= 3`
 		analyzer, _ := analyzer.Analyze(tree)
 		got := PlanQuery(analyzer, tree)
 
-		if diff := cmp.Diff(testCase.expectedPredicate, got.Predicate); diff != "" {
-			t.Errorf("Predicate mismatch (-expected +got):\n%s", diff)
-		}
+		assertEquality(t, testCase.expectedPredicate, got.Predicate)
 	}
 }
 
@@ -143,6 +150,15 @@ func TestExpression(t *testing.T) {
 
 	aggregate := createExprContext("average kills")
 	aggregateWant := Expression{Type: ExprAggregate, Aggregate: Average, Measure: "kills"}
+
+	aggregateSum := createExprContext("total kills")
+	aggregateSumWant := Expression{Type: ExprAggregate, Aggregate: Sum, Measure: "kills"}
+
+	aggregateMax := createExprContext("max kills")
+	aggregateMaxWant := Expression{Type: ExprAggregate, Aggregate: Max, Measure: "kills"}
+
+	aggregateMin := createExprContext("min kills")
+	aggregateMinWant := Expression{Type: ExprAggregate, Aggregate: Min, Measure: "kills"}
 
 	parens := createExprContext("(rescues - 2) * 3")
 	parensWant := Expression{
@@ -177,11 +193,30 @@ func TestExpression(t *testing.T) {
 		},
 	}
 
+	specificity := createExprContext("ben:kills / .5")
+	specificityWant := Expression{
+		Type:     ExprBinaryOp,
+		Operator: Divide,
+		Left: &Expression{
+			Type: ExprSpecificity,
+			Specificity: Specificity{
+				EntityType:  PlayerEntity,
+				EntityValue: "ben",
+				Measure:     "kills",
+			},
+		},
+		Right: &Expression{Type: ExprLiteral, LiteralValue: ".5"},
+	}
+
 	testCases := []exprTestCase{
 		{*binaryOp, binaryOpWant, analyzer.Analyzer{}},
 		{*aggregate, aggregateWant, analyzer.Analyzer{}},
+		{*aggregateSum, aggregateSumWant, analyzer.Analyzer{}},
+		{*aggregateMax, aggregateMaxWant, analyzer.Analyzer{}},
+		{*aggregateMin, aggregateMinWant, analyzer.Analyzer{}},
 		{*parens, parensWant, analyzer.Analyzer{}},
 		{*identifiers, identifiersWant, identifiersAnalyzer},
+		{*specificity, specificityWant, analyzer.Analyzer{}},
 	}
 
 	for _, testCase := range testCases {
@@ -189,8 +224,65 @@ func TestExpression(t *testing.T) {
 			Analyzer: testCase.a,
 		}
 		expr := q.VisitExpr(&testCase.input).(Expression)
-		if diff := cmp.Diff(testCase.expected, expr); diff != "" {
-			t.Errorf("Expression mismatch (-expected +got):\n%s", diff)
+		assertEquality(t, testCase.expected, expr)
+	}
+}
+
+func createSpecificityContext(specificity string) *parser.SpecificityContext {
+	stream := buildStream(specificity)
+	p := parser.NewpgqlParser(stream)
+	ctx := p.Specificity()
+	specificityCtx, _ := ctx.(*parser.SpecificityContext)
+	return specificityCtx
+}
+
+type specificityTestCase struct {
+	name     string
+	input    parser.SpecificityContext
+	expected Specificity
+	a        analyzer.Analyzer
+}
+
+func TestSpecificity(t *testing.T) {
+	game := createSpecificityContext("g:damage")
+	gameWant := Specificity{EntityType: GameEntity, EntityValue: "g", Measure: "damage"}
+
+	aggregateGameWant := Specificity{EntityType: GameAggregateEntity, EntityValue: "g", Measure: "damage"}
+	aggregateGameAnalyzer := analyzer.Analyzer{
+		Grain: analyzer.Grain{BaseDimension: analyzer.TeamDimension},
+	}
+
+	player := createSpecificityContext("cody:assists")
+	playerWant := Specificity{EntityType: PlayerEntity, EntityValue: "cody", Measure: "assists"}
+
+	average := createSpecificityContext("ben:average kills")
+	averageWant := Specificity{EntityType: PlayerEntity, EntityValue: "ben", Aggregate: Average, Measure: "kills"}
+
+	// TODO: Should we enforce this only being in for team during query planning?
+	sum := createSpecificityContext("g: total damage")
+	sumWant := Specificity{EntityType: GameEntity, EntityValue: "g", Aggregate: Sum, Measure: "damage"}
+
+	max := createSpecificityContext("trenton: max damage")
+	maxWant := Specificity{EntityType: PlayerEntity, EntityValue: "trenton", Aggregate: Max, Measure: "damage"}
+
+	min := createSpecificityContext("isaac: min kills")
+	minWant := Specificity{EntityType: PlayerEntity, EntityValue: "isaac", Aggregate: Min, Measure: "kills"}
+
+	testCases := []specificityTestCase{
+		{"Game", *game, gameWant, analyzer.Analyzer{}},
+		{"Aggregate game", *game, aggregateGameWant, aggregateGameAnalyzer},
+		{"Player", *player, playerWant, analyzer.Analyzer{}},
+		{"Average aggregate", *average, averageWant, analyzer.Analyzer{}},
+		{"Sum aggregate", *sum, sumWant, analyzer.Analyzer{}},
+		{"Max aggregate", *max, maxWant, analyzer.Analyzer{}},
+		{"Min aggregate", *min, minWant, analyzer.Analyzer{}},
+	}
+
+	for _, testCase := range testCases {
+		q := QueryPlanner{
+			Analyzer: testCase.a,
 		}
+		specificity := q.VisitSpecificity(&testCase.input).(Specificity)
+		assertEquality(t, testCase.expected, specificity)
 	}
 }

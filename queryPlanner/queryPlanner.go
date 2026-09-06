@@ -3,6 +3,7 @@ package queryplanner
 import (
 	"pubql/analyzer"
 	"pubql/parser"
+	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
 )
@@ -29,7 +30,7 @@ const (
 	UnkownEntity EntityType = iota
 	PlayerEntity
 	GameEntity
-	AggregateEntity
+	GameAggregateEntity
 )
 
 type Operator int
@@ -271,8 +272,8 @@ func (q *QueryPlanner) VisitExpr(ctx *parser.ExprContext) any {
 		expression.Type = ExprBinaryOp
 	} else { //leaf
 		if ctx.Specificity() != nil {
-			// TODO: Finish this one!
 			expression.Type = ExprSpecificity
+			expression.Specificity = q.Visit(ctx.Specificity()).(Specificity)
 		} else if ctx.AggregateFunction() != nil {
 			expression.Type = ExprAggregate
 			aggr := ctx.AggregateFunction()
@@ -296,4 +297,40 @@ func (q *QueryPlanner) VisitExpr(ctx *parser.ExprContext) any {
 	}
 
 	return expression
+}
+
+func (q *QueryPlanner) VisitSpecificity(ctx *parser.SpecificityContext) any {
+	specificity := Specificity{}
+
+	identifier := strings.ToLower(ctx.IDENTIFIER().GetText())
+	specificity.EntityValue = identifier
+	if identifier == "g" {
+		if q.Analyzer.Grain.BaseDimension == analyzer.TeamDimension {
+			specificity.EntityType = GameAggregateEntity
+		} else {
+			specificity.EntityType = GameEntity
+		}
+	} else {
+		specificity.EntityType = PlayerEntity
+	}
+	if ctx.Measure() != nil {
+		specificity.Measure = strings.ToLower(ctx.Measure().GetText())
+	}
+	if ctx.AggregateFunction() != nil {
+		aggr := ctx.AggregateFunction()
+		if aggr.Measure() != nil {
+			specificity.Measure = strings.ToLower(aggr.Measure().GetText())
+		}
+		if aggr.AVERAGE() != nil {
+			specificity.Aggregate = Average
+		} else if aggr.TOTAL() != nil {
+			specificity.Aggregate = Sum
+		} else if aggr.MAX() != nil {
+			specificity.Aggregate = Max
+		} else if aggr.MIN() != nil {
+			specificity.Aggregate = Min
+		}
+	}
+
+	return specificity
 }
