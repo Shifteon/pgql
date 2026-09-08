@@ -57,9 +57,10 @@ type Grain struct {
 	Refinements        []Dimension
 }
 
-type projection struct {
+type Projection struct {
 	Measure     string
 	Aggregate   string
+	Identifier  string
 	Expression  parser.IExprContext
 	Predicate   parser.IPredicateContext
 	Specificity parser.ISpecificityContext
@@ -68,7 +69,7 @@ type projection struct {
 type Analyzer struct {
 	parser.BasepgqlVisitor
 	Grain
-	Projections   []projection
+	Projections   []Projection
 	IsScalar      bool
 	IsSequential  bool
 	Identifiers   map[string]IdentifierValue
@@ -79,7 +80,7 @@ func Analyze(tree antlr.ParseTree) (Analyzer, error) {
 	analyzer := Analyzer{
 		Identifiers: make(map[string]IdentifierValue),
 		Grain:       Grain{Refinements: make([]Dimension, 0)},
-		Projections: make([]projection, 0),
+		Projections: make([]Projection, 0),
 	}
 	result := analyzer.Visit(tree).(result)
 	return analyzer, result.err
@@ -227,7 +228,7 @@ func (a *Analyzer) VisitShowBody(ctx *parser.ShowBodyContext) any {
 }
 
 func (a *Analyzer) VisitShowFragment(ctx *parser.ShowFragmentContext) any {
-	projection := projection{}
+	projection := Projection{}
 	if ctx.Specificity() != nil {
 		result := a.Visit(ctx.Specificity()).(result)
 		if result.err != nil {
@@ -242,7 +243,17 @@ func (a *Analyzer) VisitShowFragment(ctx *parser.ShowFragmentContext) any {
 		if a.IsScalar {
 			return fail("Cannot use aggregate functions in a scalar statement!", ctx.AggregateFunction().GetStart())
 		}
-		projection.Aggregate = ctx.GetText()
+		aggr := ctx.AggregateFunction()
+		if aggr.AVERAGE() != nil {
+			projection.Aggregate = aggr.AVERAGE().GetText()
+		} else if aggr.TOTAL() != nil {
+			projection.Aggregate = aggr.TOTAL().GetText()
+		} else if aggr.MAX() != nil {
+			projection.Aggregate = aggr.MAX().GetText()
+		} else if aggr.MIN() != nil {
+			projection.Aggregate = aggr.MIN().GetText()
+		}
+		projection.Measure = aggr.Measure().GetText()
 	}
 	if ctx.IDENTIFIER() != nil {
 		identifier := ctx.IDENTIFIER().GetText()
@@ -268,6 +279,7 @@ func (a *Analyzer) VisitShowFragment(ctx *parser.ShowFragmentContext) any {
 			// This should never happen since the parser should catch this. Just being safe
 			return fail(fmt.Sprintf("Could not find expression or predicate preceding identifier \"%q\"", identifier), ctx.IDENTIFIER().GetSymbol())
 		}
+		projection.Identifier = identifier
 	}
 
 	a.Projections = append(a.Projections, projection)

@@ -132,24 +132,40 @@ type Predicate struct {
 	IsWithinParens bool
 }
 
-type flatProjection struct {
-	measure   string
-	name      string
-	aggregate Aggregate
+type ProjectionType int
+
+const (
+	ProjMeasure ProjectionType = iota
+	ProjAggregate
+	ProjSpecificity
+	ProjExpr
+	ProjPred
+)
+
+type Projection struct {
+	// Metadata
+	Type ProjectionType
+	Name string
+
+	Predicate   Predicate
+	Expression  Expression
+	Specificity Specificity
+	Measure     string
+	Aggregate   Aggregate
 }
 
 type QueryPlan struct {
 	Grain analyzer.Grain
 	Predicate
 	IsSequential bool
-	Projections  []flatProjection
+	Projections  []Projection
 }
 
 type QueryPlanner struct {
 	parser.BasepgqlVisitor
-	QueryPlan     QueryPlan
-	Analyzer      analyzer.Analyzer
-	inWhereClause bool
+	QueryPlan QueryPlan
+	// TODO: Should this be private?
+	Analyzer analyzer.Analyzer
 }
 
 func PlanQuery(a analyzer.Analyzer, tree antlr.ParseTree) QueryPlan {
@@ -157,14 +173,57 @@ func PlanQuery(a analyzer.Analyzer, tree antlr.ParseTree) QueryPlan {
 		QueryPlan: QueryPlan{
 			Grain:        a.Grain,
 			IsSequential: a.IsSequential,
-			Projections:  make([]flatProjection, 0),
+			Projections:  make([]Projection, 0),
 		},
 		Analyzer: a,
 	}
 
 	queryPlanner.Visit(tree)
+	queryPlanner.createProjections()
 
 	return queryPlanner.QueryPlan
+}
+
+func (q *QueryPlanner) createProjections() {
+	for _, projection := range q.Analyzer.Projections {
+		queryProjection := Projection{}
+		if projection.Aggregate != "" {
+			queryProjection.Type = ProjAggregate
+			// TODO: If I move the Aggregate type to a different file I can do this in the analyzer instead
+			switch projection.Aggregate {
+			case "average":
+				queryProjection.Aggregate = Average
+			case "total":
+				queryProjection.Aggregate = Sum
+			case "min":
+				queryProjection.Aggregate = Min
+			case "max":
+				queryProjection.Aggregate = Max
+			default:
+				return
+			}
+			queryProjection.Measure = projection.Measure
+		} else if projection.Measure != "" {
+			queryProjection.Type = ProjMeasure
+			queryProjection.Measure = projection.Measure
+		} else if projection.Expression != nil {
+			queryProjection.Type = ProjExpr
+			// TODO: Is there a better place/way to do this type assertion?
+			queryProjection.Expression = q.VisitExpr(projection.Expression.(*parser.ExprContext)).(Expression)
+			queryProjection.Name = projection.Identifier
+		} else if projection.Predicate != nil {
+			queryProjection.Type = ProjPred
+			// TODO: Is there a better place/way to do this type assertion?
+			queryProjection.Predicate = q.VisitPredicate(projection.Predicate.(*parser.PredicateContext)).(Predicate)
+			queryProjection.Name = projection.Identifier
+		} else if projection.Specificity != nil {
+			queryProjection.Type = ProjSpecificity
+			// TODO: Is there a better place/way to do this type assertion?
+			queryProjection.Specificity = q.VisitSpecificity(projection.Specificity.(*parser.SpecificityContext)).(Specificity)
+		}
+
+		q.QueryPlan.Projections = append(q.QueryPlan.Projections, queryProjection)
+	}
 }
 
 func (q *QueryPlanner) Visit(tree antlr.ParseTree) any {
@@ -179,63 +238,59 @@ func (q *QueryPlanner) VisitStatement(ctx *parser.StatementContext) any {
 }
 
 func (q *QueryPlanner) VisitWhereClause(ctx *parser.WhereClauseContext) any {
-	q.inWhereClause = true
 	if ctx.Predicate() != nil {
 		q.QueryPlan.Predicate = q.Visit(ctx.Predicate()).(Predicate)
+		// makes it easier to test
+		return q.QueryPlan.Predicate
 	}
 
-	q.inWhereClause = false
 	return true
 }
 
 func (q *QueryPlanner) VisitPredicate(ctx *parser.PredicateContext) any {
-	if q.inWhereClause {
-		predicate := Predicate{}
-		if ctx.LPAREN() != nil {
-			predicate = q.Visit(ctx.Predicate(0)).(Predicate)
-			predicate.IsWithinParens = true
-		} else if ctx.LOGICALNOT() != nil {
-			predicate.Type = PredNot
-			lhs := q.Visit(ctx.Predicate(0)).(Predicate)
-			predicate.LeftPred = &lhs
-		} else if ctx.LOGICALAND() != nil || ctx.LOGICALOR() != nil {
-			predicate.Type = PredLogical
-			if ctx.LOGICALAND() != nil {
-				predicate.LogicalOperator = LogicalAnd
-			} else if ctx.LOGICALOR() != nil {
-				predicate.LogicalOperator = LogicalOr
-			}
-			lhs := q.Visit(ctx.Predicate(0)).(Predicate)
-			rhs := q.Visit(ctx.Predicate(1)).(Predicate)
-			predicate.LeftPred = &lhs
-			predicate.RightPred = &rhs
-		} else if ctx.ComparisonOperator() != nil {
-			predicate.Type = PredComparison
-			comparisonOperator := ctx.ComparisonOperator()
-
-			if comparisonOperator.LESSER() != nil {
-				predicate.ComparisonOperator = LesserThan
-			} else if comparisonOperator.GREATER() != nil {
-				predicate.ComparisonOperator = GreaterThan
-			} else if comparisonOperator.LESSEREQUAL() != nil {
-				predicate.ComparisonOperator = LesserOrEqual
-			} else if comparisonOperator.GREATEREQUAL() != nil {
-				predicate.ComparisonOperator = GreaterOrEqual
-			} else if comparisonOperator.EQUAL() != nil {
-				predicate.ComparisonOperator = Equal
-			} else if comparisonOperator != nil {
-				predicate.ComparisonOperator = NotEqual
-			}
-
-			lhs := q.Visit(ctx.Expr(0)).(Expression)
-			rhs := q.Visit(ctx.Expr(1)).(Expression)
-			predicate.LeftExpr = &lhs
-			predicate.RightExpr = &rhs
+	predicate := Predicate{}
+	if ctx.LPAREN() != nil {
+		predicate = q.Visit(ctx.Predicate(0)).(Predicate)
+		predicate.IsWithinParens = true
+	} else if ctx.LOGICALNOT() != nil {
+		predicate.Type = PredNot
+		lhs := q.Visit(ctx.Predicate(0)).(Predicate)
+		predicate.LeftPred = &lhs
+	} else if ctx.LOGICALAND() != nil || ctx.LOGICALOR() != nil {
+		predicate.Type = PredLogical
+		if ctx.LOGICALAND() != nil {
+			predicate.LogicalOperator = LogicalAnd
+		} else if ctx.LOGICALOR() != nil {
+			predicate.LogicalOperator = LogicalOr
 		}
-		return predicate
-	}
+		lhs := q.Visit(ctx.Predicate(0)).(Predicate)
+		rhs := q.Visit(ctx.Predicate(1)).(Predicate)
+		predicate.LeftPred = &lhs
+		predicate.RightPred = &rhs
+	} else if ctx.ComparisonOperator() != nil {
+		predicate.Type = PredComparison
+		comparisonOperator := ctx.ComparisonOperator()
 
-	return true
+		if comparisonOperator.LESSER() != nil {
+			predicate.ComparisonOperator = LesserThan
+		} else if comparisonOperator.GREATER() != nil {
+			predicate.ComparisonOperator = GreaterThan
+		} else if comparisonOperator.LESSEREQUAL() != nil {
+			predicate.ComparisonOperator = LesserOrEqual
+		} else if comparisonOperator.GREATEREQUAL() != nil {
+			predicate.ComparisonOperator = GreaterOrEqual
+		} else if comparisonOperator.EQUAL() != nil {
+			predicate.ComparisonOperator = Equal
+		} else if comparisonOperator != nil {
+			predicate.ComparisonOperator = NotEqual
+		}
+
+		lhs := q.Visit(ctx.Expr(0)).(Expression)
+		rhs := q.Visit(ctx.Expr(1)).(Expression)
+		predicate.LeftExpr = &lhs
+		predicate.RightExpr = &rhs
+	}
+	return predicate
 }
 
 func checkAndReturnOperator(ctx *parser.ExprContext) Operator {

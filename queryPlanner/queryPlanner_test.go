@@ -17,7 +17,7 @@ func buildStream(input string) *antlr.CommonTokenStream {
 	return stream
 }
 
-func assertEquality(t *testing.T, a interface{}, b interface{}) {
+func assertEquality(t *testing.T, a any, b any) {
 	if diff := cmp.Diff(a, b); diff != "" {
 		t.Errorf("Expression mismatch (-expected +got):\n%s", diff)
 	}
@@ -26,15 +26,28 @@ func assertEquality(t *testing.T, a interface{}, b interface{}) {
 // TODO: Add tests for PlanQuery
 
 type predicateTestCase struct {
-	input             string
+	input             *parser.WhereClauseContext
 	expectedPredicate Predicate
 }
 
-// TODO: Make these tests more like the expression ones so I just call visit predicate
+func createWhereContext(input string) *parser.WhereClauseContext {
+	stream := buildStream(input)
+	p := parser.NewpgqlParser(stream)
+	ctx := p.WhereClause()
+	whereCtx, _ := ctx.(*parser.WhereClauseContext)
+	return whereCtx
+}
+
+func createPredicateContext(input string) *parser.PredicateContext {
+	stream := buildStream(input)
+	p := parser.NewpgqlParser(stream)
+	ctx := p.Predicate()
+	predCtx, _ := ctx.(*parser.PredicateContext)
+	return predCtx
+}
+
 func TestPredicate(t *testing.T) {
-	singlePredicateStatement := `show kills
-for team ic
-where kills > 2`
+	singlePredicateStatement := createWhereContext("where kills > 2")
 	singlePredicateWant := Predicate{
 		Type:               PredComparison,
 		LeftExpr:           &Expression{Type: ExprMeasure, Measure: "kills"},
@@ -42,9 +55,7 @@ where kills > 2`
 		ComparisonOperator: GreaterThan,
 	}
 
-	logicalPredicate := `show kills
-for team ic
-where kills > 2 or damage < 100`
+	logicalPredicate := createWhereContext("where kills > 2 or damage < 100")
 	logicalPredicateWant := Predicate{
 		Type: PredLogical,
 		LeftPred: &Predicate{
@@ -62,9 +73,7 @@ where kills > 2 or damage < 100`
 		LogicalOperator: LogicalOr,
 	}
 
-	notPredicate := `show kills
-for team ic
-where not assists = 6`
+	notPredicate := createWhereContext("where not assists = 6")
 	notPredicateWant := Predicate{
 		Type: PredNot,
 		LeftPred: &Predicate{
@@ -75,9 +84,7 @@ where not assists = 6`
 		},
 	}
 
-	parenPredicate := `show kills
-for team ic
-where (rescues != 2 or damage >= 900) and kills <= 3`
+	parenPredicate := createWhereContext("where (rescues != 2 or damage >= 900) and kills <= 3")
 	parenPredicateWant := Predicate{
 		Type:            PredLogical,
 		LogicalOperator: LogicalAnd,
@@ -114,14 +121,10 @@ where (rescues != 2 or damage >= 900) and kills <= 3`
 	}
 
 	for _, testCase := range testCases {
-		stream := buildStream(testCase.input)
-		p := parser.NewpgqlParser(stream)
-		tree := p.Statement()
-		// TODO: Instead of calling this should probably just construct an Analyzer{}
-		analyzer, _ := analyzer.Analyze(tree)
-		got := PlanQuery(analyzer, tree)
+		q := QueryPlanner{}
+		got := q.VisitWhereClause(testCase.input)
 
-		assertEquality(t, testCase.expectedPredicate, got.Predicate)
+		assertEquality(t, testCase.expectedPredicate, got)
 	}
 }
 
@@ -284,5 +287,106 @@ func TestSpecificity(t *testing.T) {
 		}
 		specificity := q.VisitSpecificity(&testCase.input).(Specificity)
 		assertEquality(t, testCase.expected, specificity)
+	}
+}
+
+type createProjectionTestCase struct {
+	name                string
+	a                   analyzer.Analyzer
+	expectedProjections []Projection
+}
+
+func TestCreateProjections(t *testing.T) {
+	measureProj := analyzer.Analyzer{
+		Projections: []analyzer.Projection{
+			{Measure: "kills"},
+		},
+	}
+	measureProjWant := []Projection{{Type: ProjMeasure, Measure: "kills"}}
+
+	specificityProj := analyzer.Analyzer{
+		Projections: []analyzer.Projection{
+			{Specificity: createSpecificityContext("ben:damage")},
+		},
+	}
+	specificityWant := []Projection{
+		{
+			Type:        ProjSpecificity,
+			Specificity: Specificity{EntityType: PlayerEntity, EntityValue: "ben", Measure: "damage"},
+		},
+	}
+
+	aggregateProj := analyzer.Analyzer{
+		Projections: []analyzer.Projection{
+			{Aggregate: "max", Measure: "assists"},
+		},
+	}
+	aggregateWant := []Projection{{Type: ProjAggregate, Aggregate: Max, Measure: "assists"}}
+
+	expressionProj := analyzer.Analyzer{
+		Projections: []analyzer.Projection{
+			{Expression: createExprContext("kills + 2"), Identifier: "test"},
+		},
+	}
+	expressionProjWant := []Projection{
+		{
+			Type: ProjExpr,
+			Name: "test",
+			Expression: Expression{
+				Type:     ExprBinaryOp,
+				Operator: Add,
+				Left:     &Expression{Type: ExprMeasure, Measure: "kills"},
+				Right:    &Expression{Type: ExprLiteral, LiteralValue: "2"},
+			},
+		},
+	}
+
+	predicateProj := analyzer.Analyzer{
+		Projections: []analyzer.Projection{
+			{Predicate: createPredicateContext("damage > 300"), Identifier: "test"},
+		},
+	}
+	predicateProjWant := []Projection{
+		{
+			Type: ProjPred,
+			Name: "test",
+			Predicate: Predicate{
+				Type:               PredComparison,
+				ComparisonOperator: GreaterThan,
+				LeftExpr:           &Expression{Type: ExprMeasure, Measure: "damage"},
+				RightExpr:          &Expression{Type: ExprLiteral, LiteralValue: "300"},
+			},
+		},
+	}
+
+	multipleProjections := analyzer.Analyzer{
+		Projections: []analyzer.Projection{
+			{Measure: "kills"},
+			{Aggregate: "min", Measure: "damage"},
+		},
+	}
+	multipleProjectionsWant := []Projection{
+		{Type: ProjMeasure, Measure: "kills"},
+		{Type: ProjAggregate, Aggregate: Min, Measure: "damage"},
+	}
+
+	testCases := []createProjectionTestCase{
+		{"Measure projection", measureProj, measureProjWant},
+		{"Specificity projection", specificityProj, specificityWant},
+		{"Aggregate projection", aggregateProj, aggregateWant},
+		{"Expression projection", expressionProj, expressionProjWant},
+		{"Predicate projection", predicateProj, predicateProjWant},
+		{"Multiple projections", multipleProjections, multipleProjectionsWant},
+	}
+
+	for _, testCase := range testCases {
+		q := QueryPlanner{
+			Analyzer: testCase.a,
+			QueryPlan: QueryPlan{
+				Projections: make([]Projection, 0),
+			},
+		}
+		q.createProjections()
+		assertEquality(t, testCase.expectedProjections, q.QueryPlan.Projections)
 	}
 }
