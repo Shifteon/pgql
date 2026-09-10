@@ -196,13 +196,13 @@ func TestExpression(t *testing.T) {
 		},
 	}
 
-	specificity := createExprContext("ben:kills / .5")
-	specificityWant := Expression{
+	scope := createExprContext("ben:kills / .5")
+	scopeWant := Expression{
 		Type:     ExprBinaryOp,
 		Operator: Divide,
 		Left: &Expression{
-			Type: ExprSpecificity,
-			Specificity: Specificity{
+			Type: ExprScope,
+			Scope: Scope{
 				EntityType:  PlayerEntity,
 				EntityValue: "ben",
 				Measure:     "kills",
@@ -219,7 +219,7 @@ func TestExpression(t *testing.T) {
 		{*aggregateMin, aggregateMinWant, analyzer.Analyzer{}},
 		{*parens, parensWant, analyzer.Analyzer{}},
 		{*identifiers, identifiersWant, identifiersAnalyzer},
-		{*specificity, specificityWant, analyzer.Analyzer{}},
+		{*scope, scopeWant, analyzer.Analyzer{}},
 	}
 
 	for _, testCase := range testCases {
@@ -231,47 +231,47 @@ func TestExpression(t *testing.T) {
 	}
 }
 
-func createSpecificityContext(specificity string) *parser.SpecificityContext {
-	stream := buildStream(specificity)
+func createScopeContext(scope string) *parser.ScopeContext {
+	stream := buildStream(scope)
 	p := parser.NewpgqlParser(stream)
-	ctx := p.Specificity()
-	specificityCtx, _ := ctx.(*parser.SpecificityContext)
-	return specificityCtx
+	ctx := p.Scope()
+	scopeCtx, _ := ctx.(*parser.ScopeContext)
+	return scopeCtx
 }
 
-type specificityTestCase struct {
+type scopeTestCase struct {
 	name     string
-	input    parser.SpecificityContext
-	expected Specificity
+	input    parser.ScopeContext
+	expected Scope
 	a        analyzer.Analyzer
 }
 
-func TestSpecificity(t *testing.T) {
-	game := createSpecificityContext("g:damage")
-	gameWant := Specificity{EntityType: GameEntity, EntityValue: "g", Measure: "damage"}
+func TestScope(t *testing.T) {
+	game := createScopeContext("g:damage")
+	gameWant := Scope{EntityType: GameEntity, EntityValue: "g", Measure: "damage"}
 
-	aggregateGameWant := Specificity{EntityType: GameAggregateEntity, EntityValue: "g", Measure: "damage"}
+	aggregateGameWant := Scope{EntityType: GameAggregateEntity, EntityValue: "g", Measure: "damage"}
 	aggregateGameAnalyzer := analyzer.Analyzer{
 		Grain: analyzer.Grain{BaseDimension: analyzer.TeamDimension},
 	}
 
-	player := createSpecificityContext("cody:assists")
-	playerWant := Specificity{EntityType: PlayerEntity, EntityValue: "cody", Measure: "assists"}
+	player := createScopeContext("cody:assists")
+	playerWant := Scope{EntityType: PlayerEntity, EntityValue: "cody", Measure: "assists"}
 
-	average := createSpecificityContext("ben:average kills")
-	averageWant := Specificity{EntityType: PlayerEntity, EntityValue: "ben", Aggregate: Average, Measure: "kills"}
+	average := createScopeContext("ben:average kills")
+	averageWant := Scope{EntityType: PlayerEntity, EntityValue: "ben", Aggregate: Average, Measure: "kills"}
 
 	// TODO: Should we enforce this only being in for team during query planning?
-	sum := createSpecificityContext("g: total damage")
-	sumWant := Specificity{EntityType: GameEntity, EntityValue: "g", Aggregate: Sum, Measure: "damage"}
+	sum := createScopeContext("g: total damage")
+	sumWant := Scope{EntityType: GameEntity, EntityValue: "g", Aggregate: Sum, Measure: "damage"}
 
-	max := createSpecificityContext("trenton: max damage")
-	maxWant := Specificity{EntityType: PlayerEntity, EntityValue: "trenton", Aggregate: Max, Measure: "damage"}
+	max := createScopeContext("trenton: max damage")
+	maxWant := Scope{EntityType: PlayerEntity, EntityValue: "trenton", Aggregate: Max, Measure: "damage"}
 
-	min := createSpecificityContext("isaac: min kills")
-	minWant := Specificity{EntityType: PlayerEntity, EntityValue: "isaac", Aggregate: Min, Measure: "kills"}
+	min := createScopeContext("isaac: min kills")
+	minWant := Scope{EntityType: PlayerEntity, EntityValue: "isaac", Aggregate: Min, Measure: "kills"}
 
-	testCases := []specificityTestCase{
+	testCases := []scopeTestCase{
 		{"Game", *game, gameWant, analyzer.Analyzer{}},
 		{"Aggregate game", *game, aggregateGameWant, aggregateGameAnalyzer},
 		{"Player", *player, playerWant, analyzer.Analyzer{}},
@@ -285,8 +285,8 @@ func TestSpecificity(t *testing.T) {
 		q := QueryPlanner{
 			Analyzer: testCase.a,
 		}
-		specificity := q.VisitSpecificity(&testCase.input).(Specificity)
-		assertEquality(t, testCase.expected, specificity)
+		scope := q.VisitScope(&testCase.input).(Scope)
+		assertEquality(t, testCase.expected, scope)
 	}
 }
 
@@ -304,15 +304,15 @@ func TestCreateProjections(t *testing.T) {
 	}
 	measureProjWant := []Projection{{Type: ProjMeasure, Measure: "kills"}}
 
-	specificityProj := analyzer.Analyzer{
+	scopeProj := analyzer.Analyzer{
 		Projections: []analyzer.Projection{
-			{Specificity: createSpecificityContext("ben:damage")},
+			{Scope: createScopeContext("ben:damage")},
 		},
 	}
-	specificityWant := []Projection{
+	scopeWant := []Projection{
 		{
-			Type:        ProjSpecificity,
-			Specificity: Specificity{EntityType: PlayerEntity, EntityValue: "ben", Measure: "damage"},
+			Type:  ProjScope,
+			Scope: Scope{EntityType: PlayerEntity, EntityValue: "ben", Measure: "damage"},
 		},
 	}
 
@@ -372,7 +372,7 @@ func TestCreateProjections(t *testing.T) {
 
 	testCases := []createProjectionTestCase{
 		{"Measure projection", measureProj, measureProjWant},
-		{"Specificity projection", specificityProj, specificityWant},
+		{"Scope projection", scopeProj, scopeWant},
 		{"Aggregate projection", aggregateProj, aggregateWant},
 		{"Expression projection", expressionProj, expressionProjWant},
 		{"Predicate projection", predicateProj, predicateProjWant},

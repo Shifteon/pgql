@@ -68,7 +68,7 @@ func (v *BasepgqlVisitor) VisitPredicate(ctx *PredicateContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 
-func (v *BasepgqlVisitor) VisitSpecificity(ctx *SpecificityContext) interface{} {
+func (v *BasepgqlVisitor) VisitScope(ctx *ScopeContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 

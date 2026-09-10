@@ -53,8 +53,8 @@ type pgqlVisitor interface {
 	// Visit a parse tree produced by pgqlParser#predicate.
 	VisitPredicate(ctx *PredicateContext) interface{}
 
-	// Visit a parse tree produced by pgqlParser#specificity.
-	VisitSpecificity(ctx *SpecificityContext) interface{}
+	// Visit a parse tree produced by pgqlParser#scope.
+	VisitScope(ctx *ScopeContext) interface{}
 
 	// Visit a parse tree produced by pgqlParser#expr.
 	VisitExpr(ctx *ExprContext) interface{}

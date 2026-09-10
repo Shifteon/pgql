@@ -53,7 +53,7 @@ func pgqlParserInit() {
 		"statement", "showClause", "showBody", "showFragment", "forClause",
 		"byClause", "whereClause", "sortByClause", "sortBody", "dimension",
 		"measure", "aggregateFunction", "sequentialFunction", "comparisonOperator",
-		"predicate", "specificity", "expr",
+		"predicate", "scope", "expr",
 	}
 	staticData.PredictionContextCache = antlr.NewPredictionContextCache()
 	staticData.serializedATN = []int32{
@@ -238,7 +238,7 @@ const (
 	pgqlParserRULE_sequentialFunction = 12
 	pgqlParserRULE_comparisonOperator = 13
 	pgqlParserRULE_predicate          = 14
-	pgqlParserRULE_specificity        = 15
+	pgqlParserRULE_scope              = 15
 	pgqlParserRULE_expr               = 16
 )
 
@@ -794,7 +794,7 @@ type IShowFragmentContext interface {
 	// Getter signatures
 	Measure() IMeasureContext
 	AggregateFunction() IAggregateFunctionContext
-	Specificity() ISpecificityContext
+	Scope() IScopeContext
 	LPAREN() antlr.TerminalNode
 	RPAREN() antlr.TerminalNode
 	IDENTIFIER() antlr.TerminalNode
@@ -869,10 +869,10 @@ func (s *ShowFragmentContext) AggregateFunction() IAggregateFunctionContext {
 	return t.(IAggregateFunctionContext)
 }
 
-func (s *ShowFragmentContext) Specificity() ISpecificityContext {
+func (s *ShowFragmentContext) Scope() IScopeContext {
 	var t antlr.RuleContext
 	for _, ctx := range s.GetChildren() {
-		if _, ok := ctx.(ISpecificityContext); ok {
+		if _, ok := ctx.(IScopeContext); ok {
 			t = ctx.(antlr.RuleContext)
 			break
 		}
@@ -882,7 +882,7 @@ func (s *ShowFragmentContext) Specificity() ISpecificityContext {
 		return nil
 	}
 
-	return t.(ISpecificityContext)
+	return t.(IScopeContext)
 }
 
 func (s *ShowFragmentContext) LPAREN() antlr.TerminalNode {
@@ -975,7 +975,7 @@ func (p *pgqlParser) ShowFragment() (localctx IShowFragmentContext) {
 		p.EnterOuterAlt(localctx, 3)
 		{
 			p.SetState(63)
-			p.Specificity()
+			p.Scope()
 		}
 
 	case pgqlParserLPAREN:
@@ -2808,8 +2808,8 @@ errorExit:
 	goto errorExit // Trick to prevent compiler error if the label is not used
 }
 
-// ISpecificityContext is an interface to support dynamic dispatch.
-type ISpecificityContext interface {
+// IScopeContext is an interface to support dynamic dispatch.
+type IScopeContext interface {
 	antlr.ParserRuleContext
 
 	// GetParser returns the parser.
@@ -2820,47 +2820,47 @@ type ISpecificityContext interface {
 	Measure() IMeasureContext
 	AggregateFunction() IAggregateFunctionContext
 
-	// IsSpecificityContext differentiates from other interfaces.
-	IsSpecificityContext()
+	// IsScopeContext differentiates from other interfaces.
+	IsScopeContext()
 }
 
-type SpecificityContext struct {
+type ScopeContext struct {
 	antlr.BaseParserRuleContext
 	parser antlr.Parser
 }
 
-func NewEmptySpecificityContext() *SpecificityContext {
-	var p = new(SpecificityContext)
+func NewEmptyScopeContext() *ScopeContext {
+	var p = new(ScopeContext)
 	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
-	p.RuleIndex = pgqlParserRULE_specificity
+	p.RuleIndex = pgqlParserRULE_scope
 	return p
 }
 
-func InitEmptySpecificityContext(p *SpecificityContext) {
+func InitEmptyScopeContext(p *ScopeContext) {
 	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
-	p.RuleIndex = pgqlParserRULE_specificity
+	p.RuleIndex = pgqlParserRULE_scope
 }
 
-func (*SpecificityContext) IsSpecificityContext() {}
+func (*ScopeContext) IsScopeContext() {}
 
-func NewSpecificityContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *SpecificityContext {
-	var p = new(SpecificityContext)
+func NewScopeContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ScopeContext {
+	var p = new(ScopeContext)
 
 	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
 
 	p.parser = parser
-	p.RuleIndex = pgqlParserRULE_specificity
+	p.RuleIndex = pgqlParserRULE_scope
 
 	return p
 }
 
-func (s *SpecificityContext) GetParser() antlr.Parser { return s.parser }
+func (s *ScopeContext) GetParser() antlr.Parser { return s.parser }
 
-func (s *SpecificityContext) IDENTIFIER() antlr.TerminalNode {
+func (s *ScopeContext) IDENTIFIER() antlr.TerminalNode {
 	return s.GetToken(pgqlParserIDENTIFIER, 0)
 }
 
-func (s *SpecificityContext) Measure() IMeasureContext {
+func (s *ScopeContext) Measure() IMeasureContext {
 	var t antlr.RuleContext
 	for _, ctx := range s.GetChildren() {
 		if _, ok := ctx.(IMeasureContext); ok {
@@ -2876,7 +2876,7 @@ func (s *SpecificityContext) Measure() IMeasureContext {
 	return t.(IMeasureContext)
 }
 
-func (s *SpecificityContext) AggregateFunction() IAggregateFunctionContext {
+func (s *ScopeContext) AggregateFunction() IAggregateFunctionContext {
 	var t antlr.RuleContext
 	for _, ctx := range s.GetChildren() {
 		if _, ok := ctx.(IAggregateFunctionContext); ok {
@@ -2892,27 +2892,27 @@ func (s *SpecificityContext) AggregateFunction() IAggregateFunctionContext {
 	return t.(IAggregateFunctionContext)
 }
 
-func (s *SpecificityContext) GetRuleContext() antlr.RuleContext {
+func (s *ScopeContext) GetRuleContext() antlr.RuleContext {
 	return s
 }
 
-func (s *SpecificityContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) string {
+func (s *ScopeContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) string {
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *SpecificityContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+func (s *ScopeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case pgqlVisitor:
-		return t.VisitSpecificity(s)
+		return t.VisitScope(s)
 
 	default:
 		return t.VisitChildren(s)
 	}
 }
 
-func (p *pgqlParser) Specificity() (localctx ISpecificityContext) {
-	localctx = NewSpecificityContext(p, p.GetParserRuleContext(), p.GetState())
-	p.EnterRule(localctx, 30, pgqlParserRULE_specificity)
+func (p *pgqlParser) Scope() (localctx IScopeContext) {
+	localctx = NewScopeContext(p, p.GetParserRuleContext(), p.GetState())
+	p.EnterRule(localctx, 30, pgqlParserRULE_scope)
 	p.EnterOuterAlt(localctx, 1)
 	{
 		p.SetState(142)
@@ -2980,7 +2980,7 @@ type IExprContext interface {
 	AllExpr() []IExprContext
 	Expr(i int) IExprContext
 	AggregateFunction() IAggregateFunctionContext
-	Specificity() ISpecificityContext
+	Scope() IScopeContext
 	IDENTIFIER() antlr.TerminalNode
 	Measure() IMeasureContext
 	NUMBER() antlr.TerminalNode
@@ -3090,10 +3090,10 @@ func (s *ExprContext) AggregateFunction() IAggregateFunctionContext {
 	return t.(IAggregateFunctionContext)
 }
 
-func (s *ExprContext) Specificity() ISpecificityContext {
+func (s *ExprContext) Scope() IScopeContext {
 	var t antlr.RuleContext
 	for _, ctx := range s.GetChildren() {
-		if _, ok := ctx.(ISpecificityContext); ok {
+		if _, ok := ctx.(IScopeContext); ok {
 			t = ctx.(antlr.RuleContext)
 			break
 		}
@@ -3103,7 +3103,7 @@ func (s *ExprContext) Specificity() ISpecificityContext {
 		return nil
 	}
 
-	return t.(ISpecificityContext)
+	return t.(IScopeContext)
 }
 
 func (s *ExprContext) IDENTIFIER() antlr.TerminalNode {
@@ -3236,7 +3236,7 @@ func (p *pgqlParser) expr(_p int) (localctx IExprContext) {
 	case 3:
 		{
 			p.SetState(158)
-			p.Specificity()
+			p.Scope()
 		}
 
 	case 4:

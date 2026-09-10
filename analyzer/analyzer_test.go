@@ -124,7 +124,7 @@ for player ben`
 for team it`
 	predicate := `show (5 > 5) yep
 for player ben`
-	specificity := `show ben:kills
+	scope := `show ben:kills
 for team ib`
 	invalidExpression := `show (average kills / 5) avg
 for team it
@@ -140,7 +140,7 @@ for team it`
 		{"identifiers", identifiers, ""},
 		{"duplicate identifier", duplicateIdentifier, "Identifier \"yep\" already used!"},
 		{"predicate", predicate, ""},
-		{"specificity", specificity, ""},
+		{"scope", scope, ""},
 		{"invalid expression", invalidExpression, "Cannot use aggregate functions in a scalar statement!"},
 		{"invalid predicate", invalidPredicate, "Undeclared identifer: \"nope\""},
 	}
@@ -182,7 +182,7 @@ where average damage > 4`
 	runTests(t, tests)
 }
 
-func TestSpecificity(t *testing.T) {
+func TestScope(t *testing.T) {
 	valid := `show ben:kills
 for team ib`
 	teamAndTeam := `show ib:kills
@@ -201,12 +201,12 @@ for player ben
 where g:kills > 4`
 
 	tests := testCases{
-		{"valid specificity", valid, ""},
-		{"team and team", teamAndTeam, "Identifier in specificity cannot be mapped to a player! Got: ib. Expected one of"},
-		{"invalid identifier", invalidIdentifier, "Identifier in specificity cannot be mapped to a player! Got: nope. Expected one of"},
+		{"valid scope", valid, ""},
+		{"team and team", teamAndTeam, "Identifier in scope cannot be mapped to a player! Got: ib. Expected one of"},
+		{"invalid identifier", invalidIdentifier, "Identifier in scope cannot be mapped to a player! Got: nope. Expected one of"},
 		{"team does not have player", teamDoesNotHavePlayer, "Player \"ben\" is not on Team \"ic\"!"},
-		{"in show clause of player statement", inShowClauseOfPlayerStatement, "Specificity cannot be used in the SHOW clause of a statement with \"FOR player\""},
-		{"invalid type in player statement", invalidTypeInPlayerStatement, "Invalid specificity type used in a statement with \"FOR player\". Got ic."},
+		{"in show clause of player statement", inShowClauseOfPlayerStatement, "Scope cannot be used in the SHOW clause of a statement with \"FOR player\""},
+		{"invalid type in player statement", invalidTypeInPlayerStatement, "Invalid scope type used in a statement with \"FOR player\". Got ic."},
 		{"valid in player statement", validInPlayerStatement, ""},
 	}
 

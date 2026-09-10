@@ -114,7 +114,7 @@ aggregateFunction
 sequentialFunction
 comparisonOperator
 predicate
-specificity
+scope
 expr
 
 

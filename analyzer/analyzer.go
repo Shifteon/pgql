@@ -58,12 +58,12 @@ type Grain struct {
 }
 
 type Projection struct {
-	Measure     string
-	Aggregate   string
-	Identifier  string
-	Expression  parser.IExprContext
-	Predicate   parser.IPredicateContext
-	Specificity parser.ISpecificityContext
+	Measure    string
+	Aggregate  string
+	Identifier string
+	Expression parser.IExprContext
+	Predicate  parser.IPredicateContext
+	Scope      parser.IScopeContext
 }
 
 type Analyzer struct {
@@ -229,12 +229,12 @@ func (a *Analyzer) VisitShowBody(ctx *parser.ShowBodyContext) any {
 
 func (a *Analyzer) VisitShowFragment(ctx *parser.ShowFragmentContext) any {
 	projection := Projection{}
-	if ctx.Specificity() != nil {
-		result := a.Visit(ctx.Specificity()).(result)
+	if ctx.Scope() != nil {
+		result := a.Visit(ctx.Scope()).(result)
 		if result.err != nil {
 			return result
 		}
-		projection.Specificity = ctx.Specificity()
+		projection.Scope = ctx.Scope()
 	}
 	if ctx.Measure() != nil {
 		projection.Measure = ctx.Measure().GetText()
@@ -349,8 +349,8 @@ func (a *Analyzer) VisitExpr(ctx *parser.ExprContext) any {
 	if a.IsScalar && ctx.AggregateFunction() != nil {
 		return fail("Cannot use aggregate functions in a scalar statement!", ctx.AggregateFunction().GetStart())
 	}
-	if ctx.Specificity() != nil {
-		result := a.Visit(ctx.Specificity()).(result)
+	if ctx.Scope() != nil {
+		result := a.Visit(ctx.Scope()).(result)
 		if result.err != nil {
 			return result
 		}
@@ -368,28 +368,28 @@ func (a *Analyzer) VisitExpr(ctx *parser.ExprContext) any {
 	return ok()
 }
 
-func (a *Analyzer) VisitSpecificity(ctx *parser.SpecificityContext) any {
+func (a *Analyzer) VisitScope(ctx *parser.ScopeContext) any {
 	identifier := strings.ToLower(ctx.IDENTIFIER().GetText())
 	identifierToken := ctx.IDENTIFIER().GetSymbol()
 
 	switch a.Grain.BaseDimension {
 	case PlayerDimension:
 		if identifier != "g" {
-			return fail(fmt.Sprintf("Invalid specificity type used in a statement with \"FOR player\". Got %v. Expected \"g\"", identifier), identifierToken)
+			return fail(fmt.Sprintf("Invalid scope type used in a statement with \"FOR player\". Got %v. Expected \"g\"", identifier), identifierToken)
 		}
 		if a.currentClause == ShowClause {
-			return fail("Specificity cannot be used in the SHOW clause of a statement with \"FOR player\"", ctx.GetStart())
+			return fail("Scope cannot be used in the SHOW clause of a statement with \"FOR player\"", ctx.GetStart())
 		}
 		if ctx.AggregateFunction() != nil {
-			return fail("Cannot use aggregates in a specificity in a statement with \"FOR player\"!", ctx.AggregateFunction().GetStart())
+			return fail("Cannot use aggregates in a scope in a statement with \"FOR player\"!", ctx.AggregateFunction().GetStart())
 		}
 	case TeamDimension:
 		if identifier != "g" && !slices.Contains(players, identifier) {
-			message := fmt.Sprintf("Identifier in specificity cannot be mapped to a player! Got: %v. Expected one of %v", identifier, players)
+			message := fmt.Sprintf("Identifier in scope cannot be mapped to a player! Got: %v. Expected one of %v", identifier, players)
 			return fail(message, identifierToken)
 		}
 		if ctx.AggregateFunction() != nil && identifier != "g" && a.IsScalar {
-			return fail("Cannot use an aggregate function within a scalar statement outside of the \"g:\" specificity!", ctx.AggregateFunction().GetStart())
+			return fail("Cannot use an aggregate function within a scalar statement outside of the \"g:\" scope!", ctx.AggregateFunction().GetStart())
 		}
 		team := teamPlayers[a.Grain.BaseDimensionValue]
 		if !slices.Contains(team, identifier) {

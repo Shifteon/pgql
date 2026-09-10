@@ -73,7 +73,7 @@ const (
 	Min
 )
 
-type Specificity struct {
+type Scope struct {
 	EntityType  EntityType
 	EntityValue string
 	Measure     string
@@ -85,7 +85,7 @@ type ExpressionType int
 const (
 	ExprLiteral ExpressionType = iota
 	ExprMeasure
-	ExprSpecificity
+	ExprScope
 	ExprAggregate
 	ExprBinaryOp // a + b, a / b
 )
@@ -102,7 +102,7 @@ type Expression struct {
 	LiteralValue string
 	Measure      string
 	Aggregate    Aggregate
-	Specificity  Specificity
+	Scope        Scope
 	Identifier   string
 
 	IsWithinParens bool
@@ -137,7 +137,7 @@ type ProjectionType int
 const (
 	ProjMeasure ProjectionType = iota
 	ProjAggregate
-	ProjSpecificity
+	ProjScope
 	ProjExpr
 	ProjPred
 )
@@ -147,16 +147,16 @@ type Projection struct {
 	Type ProjectionType
 	Name string
 
-	Predicate   Predicate
-	Expression  Expression
-	Specificity Specificity
-	Measure     string
-	Aggregate   Aggregate
+	Predicate  Predicate
+	Expression Expression
+	Scope      Scope
+	Measure    string
+	Aggregate  Aggregate
 }
 
 type QueryPlan struct {
-	Grain analyzer.Grain
-	Predicate
+	Grain        analyzer.Grain
+	Predicate    Predicate
 	IsSequential bool
 	Projections  []Projection
 }
@@ -216,10 +216,10 @@ func (q *QueryPlanner) createProjections() {
 			// TODO: Is there a better place/way to do this type assertion?
 			queryProjection.Predicate = q.VisitPredicate(projection.Predicate.(*parser.PredicateContext)).(Predicate)
 			queryProjection.Name = projection.Identifier
-		} else if projection.Specificity != nil {
-			queryProjection.Type = ProjSpecificity
+		} else if projection.Scope != nil {
+			queryProjection.Type = ProjScope
 			// TODO: Is there a better place/way to do this type assertion?
-			queryProjection.Specificity = q.VisitSpecificity(projection.Specificity.(*parser.SpecificityContext)).(Specificity)
+			queryProjection.Scope = q.VisitScope(projection.Scope.(*parser.ScopeContext)).(Scope)
 		}
 
 		q.QueryPlan.Projections = append(q.QueryPlan.Projections, queryProjection)
@@ -326,9 +326,9 @@ func (q *QueryPlanner) VisitExpr(ctx *parser.ExprContext) any {
 		expression.Right = &rhs
 		expression.Type = ExprBinaryOp
 	} else { //leaf
-		if ctx.Specificity() != nil {
-			expression.Type = ExprSpecificity
-			expression.Specificity = q.Visit(ctx.Specificity()).(Specificity)
+		if ctx.Scope() != nil {
+			expression.Type = ExprScope
+			expression.Scope = q.Visit(ctx.Scope()).(Scope)
 		} else if ctx.AggregateFunction() != nil {
 			expression.Type = ExprAggregate
 			aggr := ctx.AggregateFunction()
@@ -354,38 +354,38 @@ func (q *QueryPlanner) VisitExpr(ctx *parser.ExprContext) any {
 	return expression
 }
 
-func (q *QueryPlanner) VisitSpecificity(ctx *parser.SpecificityContext) any {
-	specificity := Specificity{}
+func (q *QueryPlanner) VisitScope(ctx *parser.ScopeContext) any {
+	scope := Scope{}
 
 	identifier := strings.ToLower(ctx.IDENTIFIER().GetText())
-	specificity.EntityValue = identifier
+	scope.EntityValue = identifier
 	if identifier == "g" {
 		if q.Analyzer.Grain.BaseDimension == analyzer.TeamDimension {
-			specificity.EntityType = GameAggregateEntity
+			scope.EntityType = GameAggregateEntity
 		} else {
-			specificity.EntityType = GameEntity
+			scope.EntityType = GameEntity
 		}
 	} else {
-		specificity.EntityType = PlayerEntity
+		scope.EntityType = PlayerEntity
 	}
 	if ctx.Measure() != nil {
-		specificity.Measure = strings.ToLower(ctx.Measure().GetText())
+		scope.Measure = strings.ToLower(ctx.Measure().GetText())
 	}
 	if ctx.AggregateFunction() != nil {
 		aggr := ctx.AggregateFunction()
 		if aggr.Measure() != nil {
-			specificity.Measure = strings.ToLower(aggr.Measure().GetText())
+			scope.Measure = strings.ToLower(aggr.Measure().GetText())
 		}
 		if aggr.AVERAGE() != nil {
-			specificity.Aggregate = Average
+			scope.Aggregate = Average
 		} else if aggr.TOTAL() != nil {
-			specificity.Aggregate = Sum
+			scope.Aggregate = Sum
 		} else if aggr.MAX() != nil {
-			specificity.Aggregate = Max
+			scope.Aggregate = Max
 		} else if aggr.MIN() != nil {
-			specificity.Aggregate = Min
+			scope.Aggregate = Min
 		}
 	}
 
-	return specificity
+	return scope
 }

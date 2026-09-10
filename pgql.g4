@@ -7,7 +7,7 @@ statement : showClause forClause byClause? whereClause? sortByClause? EOF ;
 /* Clauses */
 showClause :  'show' sequentialFunction? showBody ;
 showBody : showFragment (COMMA showFragment)* ;
-showFragment : measure | aggregateFunction | specificity | (LPAREN (expr | predicate) RPAREN IDENTIFIER) ;
+showFragment : measure | aggregateFunction | scope | (LPAREN (expr | predicate) RPAREN IDENTIFIER) ;
 
 forClause : 'for' dimension IDENTIFIER;
 byClause : 'by' (dimension | GAME) (COMMA (dimension | GAME))? ;
@@ -27,13 +27,13 @@ predicate : LPAREN predicate RPAREN
           | predicate LOGICALAND predicate
           | predicate LOGICALOR predicate
           | expr comparisonOperator expr ;
-specificity : IDENTIFIER':'(measure | aggregateFunction) ;
+scope : IDENTIFIER':'(measure | aggregateFunction) ;
 
 expr : LPAREN expr+ RPAREN
      | expr (MULTIPLY | DIVIDE) expr
      | expr (SUM | DIFFERENCE) expr
      | aggregateFunction
-     | specificity
+     | scope
      | IDENTIFIER
      | measure
      | NUMBER
