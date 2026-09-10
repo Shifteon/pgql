@@ -2,7 +2,7 @@ package analyzer
 
 import (
 	"fmt"
-	"pubql/parser"
+	"pubql/compiler/parser"
 	"slices"
 	"strings"
 
@@ -321,6 +321,9 @@ func (a *Analyzer) VisitSortBody(ctx *parser.SortBodyContext) any {
 	return ok()
 }
 
+// TODO: Predicates and scopes are a bit more complicated now.
+// Basically both sides of an OR must operate at the same grain level.
+// I need to enforce that here
 func (a *Analyzer) VisitPredicate(ctx *parser.PredicateContext) any {
 	for _, expr := range ctx.AllExpr() {
 		result := a.Visit(expr).(result)

@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"pubql/analyzer"
-	"pubql/parser"
-	queryplanner "pubql/queryPlanner"
+	"pubql/compiler/analyzer"
+	"pubql/compiler/parser"
+	queryplanner "pubql/compiler/queryPlanner"
 
 	"github.com/antlr4-go/antlr/v4"
 )

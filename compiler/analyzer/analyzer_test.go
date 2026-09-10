@@ -1,7 +1,7 @@
 package analyzer
 
 import (
-	"pubql/parser"
+	"pubql/compiler/parser"
 	"strings"
 	"testing"
 

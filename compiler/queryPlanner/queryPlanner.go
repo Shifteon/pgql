@@ -1,8 +1,8 @@
 package queryplanner
 
 import (
-	"pubql/analyzer"
-	"pubql/parser"
+	"pubql/compiler/analyzer"
+	"pubql/compiler/parser"
 	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
