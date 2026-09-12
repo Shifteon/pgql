@@ -2,6 +2,7 @@ package queryplanner
 
 import (
 	"pubql/compiler/analyzer"
+	"pubql/compiler/internal"
 	"pubql/compiler/parser"
 	"testing"
 
@@ -146,7 +147,7 @@ func TestExpression(t *testing.T) {
 	binaryOp := createExprContext("kills + 1")
 	binaryOpWant := Expression{
 		Type:     ExprBinaryOp,
-		Operator: Add,
+		Operator: internal.Add,
 		Left:     &Expression{Type: ExprMeasure, Measure: "kills"},
 		Right:    &Expression{Type: ExprLiteral, LiteralValue: "1"},
 	}
@@ -166,11 +167,11 @@ func TestExpression(t *testing.T) {
 	parens := createExprContext("(rescues - 2) * 3")
 	parensWant := Expression{
 		Type:     ExprBinaryOp,
-		Operator: Multiply,
+		Operator: internal.Multiply,
 		Left: &Expression{
 			Type:           ExprBinaryOp,
 			IsWithinParens: true,
-			Operator:       Subtract,
+			Operator:       internal.Subtract,
 			Left:           &Expression{Type: ExprMeasure, Measure: "rescues"},
 			Right:          &Expression{Type: ExprLiteral, LiteralValue: "2"},
 		},
@@ -180,10 +181,10 @@ func TestExpression(t *testing.T) {
 	identifiers := createExprContext("ident / kills")
 	identifiersWant := Expression{
 		Type:     ExprBinaryOp,
-		Operator: Divide,
+		Operator: internal.Divide,
 		Left: &Expression{
 			Type:       ExprBinaryOp,
-			Operator:   Add,
+			Operator:   internal.Add,
 			Identifier: "ident",
 			Left:       &Expression{Type: ExprLiteral, LiteralValue: "3"},
 			Right:      &Expression{Type: ExprMeasure, Measure: "recalls"},
@@ -199,7 +200,7 @@ func TestExpression(t *testing.T) {
 	scope := createExprContext("ben:kills / .5")
 	scopeWant := Expression{
 		Type:     ExprBinaryOp,
-		Operator: Divide,
+		Operator: internal.Divide,
 		Left: &Expression{
 			Type: ExprScope,
 			Scope: Scope{
@@ -334,7 +335,7 @@ func TestCreateProjections(t *testing.T) {
 			Name: "test",
 			Expression: Expression{
 				Type:     ExprBinaryOp,
-				Operator: Add,
+				Operator: internal.Add,
 				Left:     &Expression{Type: ExprMeasure, Measure: "kills"},
 				Right:    &Expression{Type: ExprLiteral, LiteralValue: "2"},
 			},

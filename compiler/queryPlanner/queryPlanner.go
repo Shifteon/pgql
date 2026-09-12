@@ -2,6 +2,7 @@ package queryplanner
 
 import (
 	"pubql/compiler/analyzer"
+	"pubql/compiler/internal"
 	"pubql/compiler/parser"
 	"strings"
 
@@ -31,16 +32,6 @@ const (
 	PlayerEntity
 	GameEntity
 	GameAggregateEntity
-)
-
-type Operator int
-
-const (
-	UnknownOperator Operator = iota
-	Add
-	Subtract
-	Divide
-	Multiply
 )
 
 type ComparisonOperator int
@@ -96,7 +87,7 @@ type Expression struct {
 	// For binary arithmetic
 	Left     *Expression
 	Right    *Expression
-	Operator Operator
+	Operator internal.Operator
 
 	// Leaf data
 	LiteralValue string
@@ -293,20 +284,6 @@ func (q *QueryPlanner) VisitPredicate(ctx *parser.PredicateContext) any {
 	return predicate
 }
 
-func checkAndReturnOperator(ctx *parser.ExprContext) Operator {
-	if ctx.SUM() != nil {
-		return Add
-	} else if ctx.DIFFERENCE() != nil {
-		return Subtract
-	} else if ctx.MULTIPLY() != nil {
-		return Multiply
-	} else if ctx.DIVIDE() != nil {
-		return Divide
-	}
-
-	return UnknownOperator
-}
-
 func (q *QueryPlanner) VisitExpr(ctx *parser.ExprContext) any {
 	expression := Expression{}
 	if ctx.LPAREN() != nil {
@@ -318,7 +295,7 @@ func (q *QueryPlanner) VisitExpr(ctx *parser.ExprContext) any {
 			expression = q.Visit(expr).(Expression)
 			expression.Identifier = ctx.IDENTIFIER().GetText()
 		}
-	} else if operator := checkAndReturnOperator(ctx); operator != UnknownOperator {
+	} else if operator := internal.CheckAndReturnOperator(ctx); operator != internal.UnknownOperator {
 		expression.Operator = operator
 		lhs := q.Visit(ctx.Expr(0)).(Expression)
 		rhs := q.Visit(ctx.Expr(1)).(Expression)

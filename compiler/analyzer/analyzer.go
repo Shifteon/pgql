@@ -2,6 +2,7 @@ package analyzer
 
 import (
 	"fmt"
+	"pubql/compiler/internal"
 	"pubql/compiler/parser"
 	"slices"
 	"strings"
@@ -27,6 +28,13 @@ const (
 	ByClause
 	WhereClause
 	SortByClause
+)
+
+type GrainLevel int
+
+const (
+	GrainAggregate GrainLevel = iota
+	GrainScalar
 )
 
 // all of the valid team options
@@ -255,7 +263,8 @@ func (a *Analyzer) VisitShowFragment(ctx *parser.ShowFragmentContext) any {
 		}
 		projection.Measure = aggr.Measure().GetText()
 	}
-	if ctx.IDENTIFIER() != nil {
+
+	if ctx.Predicate() != nil || ctx.Expr() != nil {
 		identifier := ctx.IDENTIFIER().GetText()
 		_, alreadyUsed := a.Identifiers[identifier]
 		if alreadyUsed {
@@ -280,6 +289,23 @@ func (a *Analyzer) VisitShowFragment(ctx *parser.ShowFragmentContext) any {
 			return fail(fmt.Sprintf("Could not find expression or predicate preceding identifier \"%q\"", identifier), ctx.IDENTIFIER().GetSymbol())
 		}
 		projection.Identifier = identifier
+	} else if ctx.IDENTIFIER() != nil {
+		identifier := ctx.IDENTIFIER().GetText()
+		value, exists := a.Identifiers[identifier]
+
+		if !exists {
+			// TODO: Probably consolidate error messages
+			return fail(fmt.Sprintf("Undeclared identifer: \"%v\"", identifier), ctx.IDENTIFIER().GetSymbol())
+		}
+
+		if value.Expr != nil {
+			projection.Expression = value.Expr
+		} else if value.Pred != nil {
+			projection.Predicate = value.Pred
+		} else {
+			// This should not happen. Major bug if so
+			return fail(fmt.Sprintf("Fatal! Somehow identifier exists but does not map to an expression or a predicate! \"%v\"", identifier), ctx.IDENTIFIER().GetSymbol())
+		}
 	}
 
 	a.Projections = append(a.Projections, projection)
@@ -321,21 +347,93 @@ func (a *Analyzer) VisitSortBody(ctx *parser.SortBodyContext) any {
 	return ok()
 }
 
-// TODO: Predicates and scopes are a bit more complicated now.
-// Basically both sides of an OR must operate at the same grain level.
-// I need to enforce that here
-func (a *Analyzer) VisitPredicate(ctx *parser.PredicateContext) any {
-	for _, expr := range ctx.AllExpr() {
-		result := a.Visit(expr).(result)
-		if result.err != nil {
-			return result
+func (a *Analyzer) getExpressionGrainLevel(expr *parser.ExprContext) GrainLevel {
+	grainLevel := GrainAggregate
+
+	if expr.LPAREN() != nil {
+		grainLevel = a.getExpressionGrainLevel(expr.Expr(0).(*parser.ExprContext))
+	} else if expr.IDENTIFIER() != nil {
+		e := a.Identifiers[expr.IDENTIFIER().GetText()].Expr
+		if e != nil {
+			grainLevel = a.getExpressionGrainLevel(e.(*parser.ExprContext))
+		}
+	} else if operator := internal.CheckAndReturnOperator(expr); operator != internal.UnknownOperator {
+		leftGrainLevel := a.getExpressionGrainLevel(expr.Expr(0).(*parser.ExprContext))
+		rightGrainLevel := a.getExpressionGrainLevel(expr.Expr(1).(*parser.ExprContext))
+
+		if leftGrainLevel == GrainScalar || rightGrainLevel == GrainScalar {
+			grainLevel = GrainScalar
+		}
+	} else { // leaf
+		if expr.Scope() != nil {
+			grainLevel = GrainScalar
 		}
 	}
 
-	for _, predicate := range ctx.AllPredicate() {
-		result := a.Visit(predicate).(result)
+	return grainLevel
+}
+
+func (a *Analyzer) getPredicateGrainLevel(ctx *parser.PredicateContext) GrainLevel {
+	grainLevel := GrainAggregate
+
+	if ctx.ComparisonOperator() != nil {
+		leftGrainLevel := a.getExpressionGrainLevel(ctx.Expr(0).(*parser.ExprContext))
+		rightGrainLevel := a.getExpressionGrainLevel(ctx.Expr(1).(*parser.ExprContext))
+
+		if leftGrainLevel == GrainScalar || rightGrainLevel == GrainScalar {
+			grainLevel = GrainScalar
+		}
+	} else if ctx.LOGICALNOT() != nil || ctx.LPAREN() != nil {
+		grainLevel = a.getPredicateGrainLevel(ctx.Predicate(0).(*parser.PredicateContext))
+	} else if ctx.LOGICALOR() != nil || ctx.LOGICALAND() != nil {
+		leftGrainLevel := a.getPredicateGrainLevel(ctx.Predicate(0).(*parser.PredicateContext))
+		rightGrainLevel := a.getPredicateGrainLevel(ctx.Predicate(1).(*parser.PredicateContext))
+		if leftGrainLevel == GrainScalar || rightGrainLevel == GrainScalar {
+			grainLevel = GrainScalar
+		}
+	}
+
+	return grainLevel
+}
+
+func (a *Analyzer) VisitPredicate(ctx *parser.PredicateContext) any {
+	if ctx.LPAREN() != nil || ctx.LOGICALNOT() != nil {
+		result := a.Visit(ctx.Predicate(0)).(result)
+
 		if result.err != nil {
 			return result
+		}
+	} else if ctx.LOGICALAND() != nil || ctx.LOGICALOR() != nil {
+		leftResult := a.Visit(ctx.Predicate(0)).(result)
+		rightResult := a.Visit(ctx.Predicate(1)).(result)
+
+		if leftResult.err != nil {
+			return leftResult
+		}
+		if rightResult.err != nil {
+			return rightResult
+		}
+
+		// both side of an OR must have the same grain level
+		// in other words, if we are not at the game level and one side has a scope and
+		// the other side has a non-scope, that is invalid
+		if ctx.LOGICALOR() != nil && !slices.Contains(a.Grain.Refinements, GameDimension) {
+			leftGrainLevel := a.getPredicateGrainLevel(ctx.Predicate(0).(*parser.PredicateContext))
+			rightGrainLevel := a.getPredicateGrainLevel(ctx.Predicate(1).(*parser.PredicateContext))
+			if leftGrainLevel != rightGrainLevel {
+				// TODO: Better message
+				return fail("Both sides of an OR must share the same grain level!", ctx.GetStart())
+			}
+		}
+	} else if ctx.ComparisonOperator() != nil {
+		leftResult := a.Visit(ctx.Expr(0)).(result)
+		rightResult := a.Visit(ctx.Expr(1)).(result)
+
+		if leftResult.err != nil {
+			return leftResult
+		}
+		if rightResult.err != nil {
+			return rightResult
 		}
 	}
 
@@ -395,7 +493,7 @@ func (a *Analyzer) VisitScope(ctx *parser.ScopeContext) any {
 			return fail("Cannot use an aggregate function within a scalar statement outside of the \"g:\" scope!", ctx.AggregateFunction().GetStart())
 		}
 		team := teamPlayers[a.Grain.BaseDimensionValue]
-		if !slices.Contains(team, identifier) {
+		if identifier != "g" && !slices.Contains(team, identifier) {
 			return fail(fmt.Sprintf("Player \"%v\" is not on Team \"%v\"!", identifier, a.Grain.BaseDimensionValue), identifierToken)
 		}
 

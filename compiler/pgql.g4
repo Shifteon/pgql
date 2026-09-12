@@ -7,7 +7,11 @@ statement : showClause forClause byClause? whereClause? sortByClause? EOF ;
 /* Clauses */
 showClause :  'show' sequentialFunction? showBody ;
 showBody : showFragment (COMMA showFragment)* ;
-showFragment : measure | aggregateFunction | scope | (LPAREN (expr | predicate) RPAREN IDENTIFIER) ;
+showFragment : measure 
+             | aggregateFunction 
+             | IDENTIFIER
+             | scope 
+             | (LPAREN (expr | predicate) RPAREN IDENTIFIER) ;
 
 forClause : 'for' dimension IDENTIFIER;
 byClause : 'by' (dimension | GAME) (COMMA (dimension | GAME))? ;

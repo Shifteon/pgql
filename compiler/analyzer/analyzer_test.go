@@ -6,209 +6,1027 @@ import (
 	"testing"
 
 	"github.com/antlr4-go/antlr/v4"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
-type testCase struct {
+func buildStream(input string) *antlr.CommonTokenStream {
+	inputStream := antlr.NewInputStream(input)
+	lexer := parser.NewpgqlLexer(inputStream)
+	stream := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
+	return stream
+}
+
+func createStatementContext(input string) *parser.StatementContext {
+	stream := buildStream(input)
+	p := parser.NewpgqlParser(stream)
+	ctx := p.Statement()
+	stmtCtx, _ := ctx.(*parser.StatementContext)
+	return stmtCtx
+}
+
+func createForContext(input string) *parser.ForClauseContext {
+	stream := buildStream(input)
+	p := parser.NewpgqlParser(stream)
+	ctx := p.ForClause()
+	forCtx, _ := ctx.(*parser.ForClauseContext)
+	return forCtx
+}
+
+func createByContext(input string) *parser.ByClauseContext {
+	stream := buildStream(input)
+	p := parser.NewpgqlParser(stream)
+	ctx := p.ByClause()
+	byCtx, _ := ctx.(*parser.ByClauseContext)
+	return byCtx
+}
+
+func createShowContext(input string) *parser.ShowClauseContext {
+	stream := buildStream(input)
+	p := parser.NewpgqlParser(stream)
+	ctx := p.ShowClause()
+	showCtx, _ := ctx.(*parser.ShowClauseContext)
+	return showCtx
+}
+
+func createShowFragmentContext(input string) *parser.ShowFragmentContext {
+	stream := buildStream(input)
+	p := parser.NewpgqlParser(stream)
+	ctx := p.ShowFragment()
+	fragCtx, _ := ctx.(*parser.ShowFragmentContext)
+	return fragCtx
+}
+
+func createWhereContext(input string) *parser.WhereClauseContext {
+	stream := buildStream(input)
+	p := parser.NewpgqlParser(stream)
+	ctx := p.WhereClause()
+	whereCtx, _ := ctx.(*parser.WhereClauseContext)
+	return whereCtx
+}
+
+func createPredicateContext(input string) *parser.PredicateContext {
+	stream := buildStream(input)
+	p := parser.NewpgqlParser(stream)
+	ctx := p.Predicate()
+	predCtx, _ := ctx.(*parser.PredicateContext)
+	return predCtx
+}
+
+func createExprContext(expr string) *parser.ExprContext {
+	stream := buildStream(expr)
+	p := parser.NewpgqlParser(stream)
+	ctx := p.Expr()
+	exprCtx, _ := ctx.(*parser.ExprContext)
+	return exprCtx
+}
+
+func createScopeContext(scope string) *parser.ScopeContext {
+	stream := buildStream(scope)
+	p := parser.NewpgqlParser(stream)
+	ctx := p.Scope()
+	scopeCtx, _ := ctx.(*parser.ScopeContext)
+	return scopeCtx
+}
+
+func createSortByContext(input string) *parser.SortByClauseContext {
+	stream := buildStream(input)
+	p := parser.NewpgqlParser(stream)
+	ctx := p.SortByClause()
+	sortCtx, _ := ctx.(*parser.SortByClauseContext)
+	return sortCtx
+}
+
+func assertEquality(t *testing.T, a any, b any, opts ...cmp.Option) {
+	t.Helper()
+	if diff := cmp.Diff(a, b, opts...); diff != "" {
+		t.Errorf("Mismatch (-expected +got):\n%s", diff)
+	}
+}
+
+func assertResult(t *testing.T, res any, expectedMsg string) {
+	t.Helper()
+	r, ok := res.(result)
+	if !ok {
+		t.Fatalf("Expected result type, got %T", res)
+	}
+	if expectedMsg == "" {
+		if r.err != nil {
+			t.Fatalf("Expected no error, got %v", r.err)
+		}
+		return
+	}
+	if r.err == nil {
+		t.Fatalf("Expected error containing %q, got nil", expectedMsg)
+	}
+	if !strings.Contains(r.err.Error(), expectedMsg) {
+		t.Fatalf("Expected error containing %q, got %q", expectedMsg, r.err.Error())
+	}
+}
+
+type forTestCase struct {
+	name            string
+	input           *parser.ForClauseContext
+	expectedGrain   Grain
+	expectedMessage string
+}
+
+func TestForClause(t *testing.T) {
+	testCases := []forTestCase{
+		{
+			name:            "valid team",
+			input:           createForContext("for team ic"),
+			expectedGrain:   Grain{BaseDimension: TeamDimension, BaseDimensionValue: "ic"},
+			expectedMessage: "",
+		},
+		{
+			name:            "valid player",
+			input:           createForContext("for player ben"),
+			expectedGrain:   Grain{BaseDimension: PlayerDimension, BaseDimensionValue: "ben"},
+			expectedMessage: "",
+		},
+		{
+			name:            "invalid dimension",
+			input:           createForContext("for win ic"),
+			expectedMessage: "Invalid dimension used in the FOR clause!",
+		},
+		{
+			name:            "invalid team",
+			input:           createForContext("for team i"),
+			expectedMessage: "Unrecognized team i. Expected one of",
+		},
+		{
+			name:            "invalid player",
+			input:           createForContext("for player p"),
+			expectedMessage: "Unrecognized player p. Expected one of",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			a := Analyzer{}
+			res := a.VisitForClause(tc.input)
+			assertResult(t, res, tc.expectedMessage)
+			if tc.expectedMessage == "" {
+				assertEquality(t, tc.expectedGrain, a.Grain)
+			}
+		})
+	}
+}
+
+type byTestCase struct {
+	name            string
+	input           *parser.ByClauseContext
+	a               Analyzer
+	expectedGrain   Grain
+	expectedScalar  bool
+	expectedMessage string
+}
+
+func TestByClause(t *testing.T) {
+	testCases := []byTestCase{
+		{
+			name:  "valid single dimension",
+			input: createByContext("by player"),
+			a: Analyzer{
+				Grain: Grain{BaseDimension: TeamDimension, BaseDimensionValue: "ic"},
+			},
+			expectedGrain: Grain{
+				BaseDimension:      TeamDimension,
+				BaseDimensionValue: "ic",
+				Refinements:        []Dimension{PlayerDimension},
+			},
+			expectedScalar:  false,
+			expectedMessage: "",
+		},
+		{
+			name:  "valid two dimensions",
+			input: createByContext("by player, game"),
+			a: Analyzer{
+				Grain: Grain{BaseDimension: TeamDimension, BaseDimensionValue: "ic"},
+			},
+			expectedGrain: Grain{
+				BaseDimension:      TeamDimension,
+				BaseDimensionValue: "ic",
+				Refinements:        []Dimension{GameDimension, PlayerDimension},
+			},
+			expectedScalar:  true,
+			expectedMessage: "",
+		},
+		{
+			name:  "valid player with game refinement",
+			input: createByContext("by game"),
+			a: Analyzer{
+				Grain: Grain{BaseDimension: PlayerDimension, BaseDimensionValue: "ben"},
+			},
+			expectedGrain: Grain{
+				BaseDimension:      PlayerDimension,
+				BaseDimensionValue: "ben",
+				Refinements:        []Dimension{GameDimension},
+			},
+			expectedScalar:  true,
+			expectedMessage: "",
+		},
+		{
+			name:  "invalid dimension",
+			input: createByContext("by date"),
+			a: Analyzer{
+				Grain: Grain{BaseDimension: TeamDimension, BaseDimensionValue: "ic"},
+			},
+			expectedMessage: "Invalid dimension used in the BY clause! Got date. Expected one of 'team' or 'player'",
+		},
+		{
+			name:  "team already in for",
+			input: createByContext("by team"),
+			a: Analyzer{
+				Grain: Grain{BaseDimension: TeamDimension, BaseDimensionValue: "ic"},
+			},
+			expectedMessage: "'team' dimension already used in FOR clause!",
+		},
+		{
+			name:  "player already in for",
+			input: createByContext("by player"),
+			a: Analyzer{
+				Grain: Grain{BaseDimension: PlayerDimension, BaseDimensionValue: "ben"},
+			},
+			expectedMessage: "'player' dimension already used in FOR clause!",
+		},
+		{
+			name:  "game used twice",
+			input: createByContext("by game, game"),
+			a: Analyzer{
+				Grain: Grain{BaseDimension: TeamDimension, BaseDimensionValue: "ic"},
+			},
+			expectedMessage: "Used the same dimension 'game' more than once!",
+		},
+		{
+			name:  "team used twice",
+			input: createByContext("by team, team"),
+			a: Analyzer{
+				Grain: Grain{BaseDimension: PlayerDimension, BaseDimensionValue: "ben"},
+			},
+			expectedMessage: "Used the same dimension 'team' more than once!",
+		},
+		{
+			name:  "player used twice",
+			input: createByContext("by player, player"),
+			a: Analyzer{
+				Grain: Grain{BaseDimension: TeamDimension, BaseDimensionValue: "ic"},
+			},
+			expectedMessage: "Used the same dimension 'player' more than once!",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			a := tc.a
+			res := a.VisitByClause(tc.input)
+			assertResult(t, res, tc.expectedMessage)
+			if tc.expectedMessage == "" {
+				assertEquality(t, tc.expectedGrain, a.Grain)
+				assertEquality(t, tc.expectedScalar, a.IsScalar)
+			}
+		})
+	}
+}
+
+type showTestCase struct {
+	name                string
+	input               *parser.ShowClauseContext
+	a                   Analyzer
+	expectedSequential  bool
+	expectedProjections []Projection
+	checkIdentifiers    func(t *testing.T, a *Analyzer)
+	expectedMessage     string
+}
+
+func TestShowClause(t *testing.T) {
+	testCases := []showTestCase{
+		{
+			name:  "valid show simple measure",
+			input: createShowContext("show kills"),
+			a: Analyzer{
+				Identifiers: make(map[string]IdentifierValue),
+			},
+			expectedSequential: false,
+			expectedProjections: []Projection{
+				{Measure: "kills"},
+			},
+			expectedMessage: "",
+		},
+		{
+			name:  "sequential function",
+			input: createShowContext("show running kills"),
+			a: Analyzer{
+				Identifiers: make(map[string]IdentifierValue),
+			},
+			expectedSequential: true,
+			expectedProjections: []Projection{
+				{Measure: "kills"},
+			},
+			expectedMessage: "",
+		},
+		{
+			name:  "aggregate in non-scalar",
+			input: createShowContext("show max kills"),
+			a: Analyzer{
+				IsScalar:    false,
+				Identifiers: make(map[string]IdentifierValue),
+			},
+			expectedProjections: []Projection{
+				{Aggregate: "max", Measure: "kills"},
+			},
+			expectedMessage: "",
+		},
+		{
+			name:  "aggregate in scalar",
+			input: createShowContext("show average kills"),
+			a: Analyzer{
+				IsScalar:    true,
+				Identifiers: make(map[string]IdentifierValue),
+			},
+			expectedMessage: "Cannot use aggregate functions in a scalar statement!",
+		},
+		{
+			name:  "identifiers defined in show",
+			input: createShowContext("show (5 + 5) yep"),
+			a: Analyzer{
+				Identifiers: make(map[string]IdentifierValue),
+			},
+			expectedProjections: []Projection{
+				{Identifier: "yep"},
+			},
+			checkIdentifiers: func(t *testing.T, a *Analyzer) {
+				val, exists := a.Identifiers["yep"]
+				if !exists {
+					t.Fatalf("Expected identifier 'yep' in Identifiers map")
+				}
+				if val.Expr == nil {
+					t.Fatalf("Expected identifier 'yep' to have non-nil Expr")
+				}
+			},
+			expectedMessage: "",
+		},
+		{
+			name:  "duplicate identifier",
+			input: createShowContext("show (5 + 5) yep, (2 - 3) yep"),
+			a: Analyzer{
+				Identifiers: make(map[string]IdentifierValue),
+			},
+			expectedMessage: "Identifier \"yep\" already used!",
+		},
+		{
+			name:  "predicate defined in show",
+			input: createShowContext("show (5 > 5) yep"),
+			a: Analyzer{
+				Identifiers: make(map[string]IdentifierValue),
+			},
+			expectedProjections: []Projection{
+				{Identifier: "yep"},
+			},
+			checkIdentifiers: func(t *testing.T, a *Analyzer) {
+				val, exists := a.Identifiers["yep"]
+				if !exists {
+					t.Fatalf("Expected identifier 'yep' in Identifiers map")
+				}
+				if val.Pred == nil {
+					t.Fatalf("Expected identifier 'yep' to have non-nil Pred")
+				}
+			},
+			expectedMessage: "",
+		},
+		{
+			name:  "scope in show fragment",
+			input: createShowContext("show ben:kills"),
+			a: Analyzer{
+				Grain: Grain{
+					BaseDimension:      TeamDimension,
+					BaseDimensionValue: "ib",
+				},
+				Identifiers: make(map[string]IdentifierValue),
+			},
+			checkIdentifiers: func(t *testing.T, a *Analyzer) {
+				if len(a.Projections) != 1 {
+					t.Fatalf("Expected 1 projection, got %d", len(a.Projections))
+				}
+				if a.Projections[0].Scope == nil {
+					t.Fatalf("Expected non-nil Scope on projection")
+				}
+			},
+			expectedMessage: "",
+		},
+		{
+			name:  "reference existing identifier in show",
+			input: createShowContext("show yep"),
+			a: Analyzer{
+				Identifiers: map[string]IdentifierValue{
+					"yep": {Expr: createExprContext("5 + 5")},
+				},
+			},
+			checkIdentifiers: func(t *testing.T, a *Analyzer) {
+				if len(a.Projections) != 1 {
+					t.Fatalf("Expected 1 projection, got %d", len(a.Projections))
+				}
+				if a.Projections[0].Expression == nil {
+					t.Fatalf("Expected non-nil Expression on resolved projection")
+				}
+			},
+			expectedMessage: "",
+		},
+		{
+			name:  "reference undeclared identifier in show",
+			input: createShowContext("show nope"),
+			a: Analyzer{
+				Identifiers: make(map[string]IdentifierValue),
+			},
+			expectedMessage: "Undeclared identifer: \"nope\"",
+		},
+		{
+			name:  "invalid expression with undeclared identifier",
+			input: createShowContext("show (nope > 5) yep"),
+			a: Analyzer{
+				Identifiers: make(map[string]IdentifierValue),
+			},
+			expectedMessage: "Undeclared identifer: \"nope\"",
+		},
+		{
+			name:  "invalid expression with aggregate in scalar",
+			input: createShowContext("show (average kills / 5) avg"),
+			a: Analyzer{
+				IsScalar:    true,
+				Identifiers: make(map[string]IdentifierValue),
+			},
+			expectedMessage: "Cannot use aggregate functions in a scalar statement!",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			a := tc.a
+			res := a.VisitShowClause(tc.input)
+			assertResult(t, res, tc.expectedMessage)
+			if tc.expectedMessage == "" {
+				assertEquality(t, tc.expectedSequential, a.IsSequential)
+				if len(tc.expectedProjections) > 0 {
+					ignoreContexts := cmpopts.IgnoreFields(Projection{}, "Expression", "Predicate", "Scope")
+					assertEquality(t, tc.expectedProjections, a.Projections, ignoreContexts)
+				}
+				if tc.checkIdentifiers != nil {
+					tc.checkIdentifiers(t, &a)
+				}
+			}
+		})
+	}
+}
+
+type exprTestCase struct {
+	name            string
+	input           *parser.ExprContext
+	a               Analyzer
+	expectedMessage string
+}
+
+func TestExpr(t *testing.T) {
+	testCases := []exprTestCase{
+		{
+			name:            "valid binary arithmetic",
+			input:           createExprContext("kills / damage"),
+			a:               Analyzer{},
+			expectedMessage: "",
+		},
+		{
+			name:  "declared identifier in expr",
+			input: createExprContext("yep + 10"),
+			a: Analyzer{
+				Identifiers: map[string]IdentifierValue{
+					"yep": {Expr: createExprContext("5 + 5")},
+				},
+			},
+			expectedMessage: "",
+		},
+		{
+			name:  "undeclared identifier in expr",
+			input: createExprContext("nope + 10"),
+			a: Analyzer{
+				Identifiers: make(map[string]IdentifierValue),
+			},
+			expectedMessage: "Undeclared identifer: \"nope\"",
+		},
+		{
+			name:  "aggregate in scalar mode",
+			input: createExprContext("average damage"),
+			a: Analyzer{
+				IsScalar: true,
+			},
+			expectedMessage: "Cannot use aggregate functions in a scalar statement!",
+		},
+		{
+			name:  "aggregate in non-scalar mode",
+			input: createExprContext("average damage"),
+			a: Analyzer{
+				IsScalar: false,
+			},
+			expectedMessage: "",
+		},
+		{
+			name:  "valid scope in expr",
+			input: createExprContext("ben:kills + 1"),
+			a: Analyzer{
+				Grain: Grain{
+					BaseDimension:      TeamDimension,
+					BaseDimensionValue: "ib",
+				},
+			},
+			expectedMessage: "",
+		},
+		{
+			name:  "invalid scope in expr",
+			input: createExprContext("ben:kills + 1"),
+			a: Analyzer{
+				Grain: Grain{
+					BaseDimension:      TeamDimension,
+					BaseDimensionValue: "ic",
+				},
+			},
+			expectedMessage: "Player \"ben\" is not on Team \"ic\"!",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			a := tc.a
+			res := a.VisitExpr(tc.input)
+			assertResult(t, res, tc.expectedMessage)
+		})
+	}
+}
+
+type scopeTestCase struct {
+	name            string
+	input           *parser.ScopeContext
+	a               Analyzer
+	expectedScalar  bool
+	expectedMessage string
+}
+
+func TestScope(t *testing.T) {
+	testCases := []scopeTestCase{
+		{
+			name:  "valid team scope player on team",
+			input: createScopeContext("ben:kills"),
+			a: Analyzer{
+				Grain: Grain{
+					BaseDimension:      TeamDimension,
+					BaseDimensionValue: "ib",
+				},
+			},
+			expectedMessage: "",
+		},
+		{
+			name:  "valid team scope with g identifier",
+			input: createScopeContext("g:damage"),
+			a: Analyzer{
+				Grain: Grain{
+					BaseDimension:      TeamDimension,
+					BaseDimensionValue: "ib",
+				},
+			},
+			expectedMessage: "",
+		},
+		{
+			name:  "team and team invalid player identifier",
+			input: createScopeContext("ib:kills"),
+			a: Analyzer{
+				Grain: Grain{
+					BaseDimension:      TeamDimension,
+					BaseDimensionValue: "ic",
+				},
+			},
+			expectedMessage: "Identifier in scope cannot be mapped to a player! Got: ib. Expected one of",
+		},
+		{
+			name:  "invalid player identifier",
+			input: createScopeContext("nope:kills"),
+			a: Analyzer{
+				Grain: Grain{
+					BaseDimension:      TeamDimension,
+					BaseDimensionValue: "ic",
+				},
+			},
+			expectedMessage: "Identifier in scope cannot be mapped to a player! Got: nope. Expected one of",
+		},
+		{
+			name:  "team does not have player",
+			input: createScopeContext("ben:kills"),
+			a: Analyzer{
+				Grain: Grain{
+					BaseDimension:      TeamDimension,
+					BaseDimensionValue: "ic",
+				},
+			},
+			expectedMessage: "Player \"ben\" is not on Team \"ic\"!",
+		},
+		{
+			name:  "player statement with scope in show clause",
+			input: createScopeContext("g:kills"),
+			a: Analyzer{
+				Grain: Grain{
+					BaseDimension:      PlayerDimension,
+					BaseDimensionValue: "isaac",
+				},
+				currentClause: ShowClause,
+			},
+			expectedMessage: "Scope cannot be used in the SHOW clause of a statement with \"FOR player\"",
+		},
+		{
+			name:  "player statement with invalid scope type",
+			input: createScopeContext("ic:kills"),
+			a: Analyzer{
+				Grain: Grain{
+					BaseDimension:      PlayerDimension,
+					BaseDimensionValue: "ben",
+				},
+				currentClause: WhereClause,
+			},
+			expectedMessage: "Invalid scope type used in a statement with \"FOR player\". Got ic.",
+		},
+		{
+			name:  "player statement with valid g scope in where clause",
+			input: createScopeContext("g:kills"),
+			a: Analyzer{
+				Grain: Grain{
+					BaseDimension:      PlayerDimension,
+					BaseDimensionValue: "ben",
+				},
+				currentClause: WhereClause,
+			},
+			expectedMessage: "",
+		},
+		{
+			name:  "player statement with aggregate in scope",
+			input: createScopeContext("g:average kills"),
+			a: Analyzer{
+				Grain: Grain{
+					BaseDimension:      PlayerDimension,
+					BaseDimensionValue: "ben",
+				},
+				currentClause: WhereClause,
+			},
+			expectedMessage: "Cannot use aggregates in a scope in a statement with \"FOR player\"!",
+		},
+		{
+			name:  "aggregate in scalar outside g scope",
+			input: createScopeContext("ben:average kills"),
+			a: Analyzer{
+				Grain: Grain{
+					BaseDimension:      TeamDimension,
+					BaseDimensionValue: "ib",
+				},
+				IsScalar: true,
+			},
+			expectedMessage: "Cannot use an aggregate function within a scalar statement outside of the \"g:\" scope!",
+		},
+		{
+			name:  "scope in show with game dimension sets scalar",
+			input: createScopeContext("ben:kills"),
+			a: Analyzer{
+				Grain: Grain{
+					BaseDimension:      TeamDimension,
+					BaseDimensionValue: "ib",
+					Refinements:        []Dimension{GameDimension},
+				},
+				currentClause: ShowClause,
+				IsScalar:      false,
+			},
+			expectedScalar:  true,
+			expectedMessage: "",
+		},
+		{
+			name:            "unknown base dimension fatal error",
+			input:           createScopeContext("g:kills"),
+			a:               Analyzer{},
+			expectedMessage: "Fatal error! Somehow there is no dimension in the FOR!",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			a := tc.a
+			res := a.VisitScope(tc.input)
+			assertResult(t, res, tc.expectedMessage)
+			if tc.expectedMessage == "" && tc.expectedScalar {
+				assertEquality(t, true, a.IsScalar)
+			}
+		})
+	}
+}
+
+type predicateTestCase struct {
+	name            string
+	input           *parser.PredicateContext
+	a               Analyzer
+	expectedMessage string
+}
+
+func TestPredicate(t *testing.T) {
+	testCases := []predicateTestCase{
+		{
+			name:            "comparison predicate",
+			input:           createPredicateContext("kills > 2"),
+			a:               Analyzer{},
+			expectedMessage: "",
+		},
+		{
+			name:  "comparison predicate with undeclared identifier",
+			input: createPredicateContext("nope > 2"),
+			a: Analyzer{
+				Identifiers: make(map[string]IdentifierValue),
+			},
+			expectedMessage: "Undeclared identifer: \"nope\"",
+		},
+		{
+			name:            "logical not predicate",
+			input:           createPredicateContext("not assists = 6"),
+			a:               Analyzer{},
+			expectedMessage: "",
+		},
+		{
+			name:            "parenthesized logical predicate",
+			input:           createPredicateContext("(rescues != 2 or damage >= 900) and kills <= 3"),
+			a:               Analyzer{},
+			expectedMessage: "",
+		},
+		{
+			name:            "logical and predicate",
+			input:           createPredicateContext("kills > 2 and damage < 100"),
+			a:               Analyzer{},
+			expectedMessage: "",
+		},
+		{
+			name:  "logical or same grain aggregate level",
+			input: createPredicateContext("kills > 2 or damage < 100"),
+			a: Analyzer{
+				Grain: Grain{
+					BaseDimension:      TeamDimension,
+					BaseDimensionValue: "ib",
+					Refinements:        []Dimension{},
+				},
+			},
+			expectedMessage: "",
+		},
+		{
+			name:  "logical or mismatched grain level without game dimension",
+			input: createPredicateContext("ben:kills > 2 or damage < 100"),
+			a: Analyzer{
+				Grain: Grain{
+					BaseDimension:      TeamDimension,
+					BaseDimensionValue: "ib",
+					Refinements:        []Dimension{},
+				},
+			},
+			expectedMessage: "Both sides of an OR must share the same grain level!",
+		},
+		{
+			name:  "logical or same grain scalar level without game dimension",
+			input: createPredicateContext("ben:kills > 2 or isaac:damage < 100"),
+			a: Analyzer{
+				Grain: Grain{
+					BaseDimension:      TeamDimension,
+					BaseDimensionValue: "ib",
+					Refinements:        []Dimension{},
+				},
+			},
+			expectedMessage: "",
+		},
+		{
+			name:  "logical or same grain scalar level with g scope without game dimension",
+			input: createPredicateContext("ben:kills > 2 or g:damage < 100"),
+			a: Analyzer{
+				Grain: Grain{
+					BaseDimension:      TeamDimension,
+					BaseDimensionValue: "ib",
+					Refinements:        []Dimension{},
+				},
+			},
+			expectedMessage: "",
+		},
+		{
+			name:  "logical or mismatched grain level with game dimension permitted",
+			input: createPredicateContext("ben:kills > 2 or damage < 100"),
+			a: Analyzer{
+				Grain: Grain{
+					BaseDimension:      TeamDimension,
+					BaseDimensionValue: "ib",
+					Refinements:        []Dimension{GameDimension},
+				},
+			},
+			expectedMessage: "",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			a := tc.a
+			res := a.VisitPredicate(tc.input)
+			assertResult(t, res, tc.expectedMessage)
+		})
+	}
+}
+
+func TestWhereClause(t *testing.T) {
+	t.Run("valid where clause sets current clause", func(t *testing.T) {
+		a := Analyzer{}
+		res := a.VisitWhereClause(createWhereContext("where kills > 2"))
+		assertResult(t, res, "")
+	})
+
+	t.Run("where clause propagates predicate error", func(t *testing.T) {
+		a := Analyzer{
+			Identifiers: make(map[string]IdentifierValue),
+		}
+		res := a.VisitWhereClause(createWhereContext("where nope > 2"))
+		assertResult(t, res, "Undeclared identifer: \"nope\"")
+	})
+}
+
+func TestSortByClause(t *testing.T) {
+	t.Run("valid sort by", func(t *testing.T) {
+		a := Analyzer{}
+		res := a.VisitSortByClause(createSortByContext("sort by kills desc"))
+		assertResult(t, res, "")
+	})
+
+	t.Run("valid multiple sort by", func(t *testing.T) {
+		a := Analyzer{}
+		res := a.VisitSortByClause(createSortByContext("sort by kills desc, damage asc"))
+		assertResult(t, res, "")
+	})
+
+	t.Run("undeclared identifier in sort by", func(t *testing.T) {
+		a := Analyzer{
+			Identifiers: make(map[string]IdentifierValue),
+		}
+		res := a.VisitSortByClause(createSortByContext("sort by nope desc"))
+		assertResult(t, res, "Undeclared identifer: \"nope\"")
+	})
+}
+
+func TestGrainLevelHelpers(t *testing.T) {
+	t.Run("expression grain levels", func(t *testing.T) {
+		a := Analyzer{
+			Identifiers: map[string]IdentifierValue{
+				"scalarstat": {Expr: createExprContext("ben:kills + 1")},
+				"aggstat":    {Expr: createExprContext("average kills")},
+			},
+		}
+
+		if got := a.getExpressionGrainLevel(createExprContext("kills + 1")); got != GrainAggregate {
+			t.Errorf("Expected GrainAggregate, got %v", got)
+		}
+		if got := a.getExpressionGrainLevel(createExprContext("ben:kills")); got != GrainScalar {
+			t.Errorf("Expected GrainScalar, got %v", got)
+		}
+		if got := a.getExpressionGrainLevel(createExprContext("ben:kills + 1")); got != GrainScalar {
+			t.Errorf("Expected GrainScalar, got %v", got)
+		}
+		if got := a.getExpressionGrainLevel(createExprContext("1 + ben:kills")); got != GrainScalar {
+			t.Errorf("Expected GrainScalar for right-hand side scoped expression, got %v", got)
+		}
+		if got := a.getExpressionGrainLevel(createExprContext("(ben:kills + 1) * 2")); got != GrainScalar {
+			t.Errorf("Expected GrainScalar for nested scoped expression, got %v", got)
+		}
+		if got := a.getExpressionGrainLevel(createExprContext("((ben:kills))")); got != GrainScalar {
+			t.Errorf("Expected GrainScalar for deeply parenthesized scoped expression, got %v", got)
+		}
+		if got := a.getExpressionGrainLevel(createExprContext("average kills")); got != GrainAggregate {
+			t.Errorf("Expected GrainAggregate, got %v", got)
+		}
+		if got := a.getExpressionGrainLevel(createExprContext("scalarstat")); got != GrainScalar {
+			t.Errorf("Expected GrainScalar for resolved scalar identifier, got %v", got)
+		}
+		if got := a.getExpressionGrainLevel(createExprContext("scalarstat * 2")); got != GrainScalar {
+			t.Errorf("Expected GrainScalar for compound expression with scalar identifier, got %v", got)
+		}
+		if got := a.getExpressionGrainLevel(createExprContext("aggstat")); got != GrainAggregate {
+			t.Errorf("Expected GrainAggregate for resolved aggregate identifier, got %v", got)
+		}
+	})
+
+	t.Run("predicate grain levels", func(t *testing.T) {
+		a := Analyzer{
+			Identifiers: map[string]IdentifierValue{
+				"scalarstat": {Expr: createExprContext("ben:kills")},
+				"aggstat":    {Expr: createExprContext("damage")},
+			},
+		}
+
+		if got := a.getPredicateGrainLevel(createPredicateContext("kills > 2")); got != GrainAggregate {
+			t.Errorf("Expected GrainAggregate, got %v", got)
+		}
+		if got := a.getPredicateGrainLevel(createPredicateContext("ben:kills > 2")); got != GrainScalar {
+			t.Errorf("Expected GrainScalar for left-hand side scope comparison, got %v", got)
+		}
+		if got := a.getPredicateGrainLevel(createPredicateContext("kills > ben:kills")); got != GrainScalar {
+			t.Errorf("Expected GrainScalar for right-hand side scope comparison, got %v", got)
+		}
+		if got := a.getPredicateGrainLevel(createPredicateContext("kills > 2 and damage < 100")); got != GrainAggregate {
+			t.Errorf("Expected GrainAggregate, got %v", got)
+		}
+		if got := a.getPredicateGrainLevel(createPredicateContext("ben:kills > 2 and damage < 100")); got != GrainScalar {
+			t.Errorf("Expected GrainScalar for left-hand side scalar AND, got %v", got)
+		}
+		if got := a.getPredicateGrainLevel(createPredicateContext("kills > 2 and ben:damage < 100")); got != GrainScalar {
+			t.Errorf("Expected GrainScalar for right-hand side scalar AND, got %v", got)
+		}
+		if got := a.getPredicateGrainLevel(createPredicateContext("ben:kills > 2 or damage < 100")); got != GrainScalar {
+			t.Errorf("Expected GrainScalar for left-hand side scalar OR, got %v", got)
+		}
+		if got := a.getPredicateGrainLevel(createPredicateContext("damage < 100 or ben:kills > 2")); got != GrainScalar {
+			t.Errorf("Expected GrainScalar for right-hand side scalar OR, got %v", got)
+		}
+		if got := a.getPredicateGrainLevel(createPredicateContext("not (ben:kills > 2)")); got != GrainScalar {
+			t.Errorf("Expected GrainScalar for NOT scoped comparison, got %v", got)
+		}
+		if got := a.getPredicateGrainLevel(createPredicateContext("scalarstat > 2")); got != GrainScalar {
+			t.Errorf("Expected GrainScalar for comparison with resolved scalar identifier, got %v", got)
+		}
+		if got := a.getPredicateGrainLevel(createPredicateContext("aggstat > 2")); got != GrainAggregate {
+			t.Errorf("Expected GrainAggregate for comparison with resolved aggregate identifier, got %v", got)
+		}
+	})
+}
+
+type statementTestCase struct {
 	name            string
 	input           string
 	expectedMessage string
 }
 
-type testCases []testCase
+func TestAnalyzeStatements(t *testing.T) {
+	testCases := []statementTestCase{
+		{
+			name: "valid full query",
+			input: `show kills
+for team ic
+by player, game
+where kills > 2
+sort by kills desc`,
+			expectedMessage: "",
+		},
+		{
+			name: "valid query with declared identifier and scope",
+			input: `show (5 + 5) yep, yep, ben:kills
+for team ib
+where kills > 2`,
+			expectedMessage: "",
+		},
+		{
+			name: "invalid query duplicate identifier in show",
+			input: `show (5 + 5) yep, (2 - 3) yep
+for team it`,
+			expectedMessage: "Identifier \"yep\" already used!",
+		},
+		{
+			name: "invalid query undeclared identifier in where",
+			input: `show kills
+for team ic
+where nope > 5`,
+			expectedMessage: "Undeclared identifer: \"nope\"",
+		},
+		{
+			name: "invalid query player dimension mismatch",
+			input: `show kills
+for player p`,
+			expectedMessage: "Unrecognized player p. Expected one of",
+		},
+		{
+			name: "invalid query aggregate in scalar",
+			input: `show average kills
+for player ben
+by game`,
+			expectedMessage: "Cannot use aggregate functions in a scalar statement!",
+		},
+	}
 
-func buildTree(input string) parser.IStatementContext {
-	inputStream := antlr.NewInputStream(input)
-	lexer := parser.NewpgqlLexer(inputStream)
-	stream := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
-	parser := parser.NewpgqlParser(stream)
-	return parser.Statement()
-}
-
-func runTests(t *testing.T, testCases testCases) {
-	for _, test := range testCases {
-		t.Run(test.name, func(t *testing.T) {
-			_, err := Analyze(buildTree(test.input))
-
-			// no error expected
-			if test.expectedMessage == "" {
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			stmt := createStatementContext(tc.input)
+			a, err := Analyze(stmt)
+			if tc.expectedMessage == "" {
 				if err != nil {
-					t.Fatalf("Expected no error. Got %q", err)
+					t.Fatalf("Expected no error, got %v", err)
 				}
-				return
+				if a.Grain.BaseDimension == UnkownDimension {
+					t.Errorf("Expected valid BaseDimension, got UnkownDimension")
+				}
+			} else {
+				if err == nil {
+					t.Fatalf("Expected error containing %q, got nil", tc.expectedMessage)
+				}
+				if !strings.Contains(err.Error(), tc.expectedMessage) {
+					t.Fatalf("Expected error containing %q, got %q", tc.expectedMessage, err.Error())
+				}
 			}
-
-			// we expect an error at this point
-			if err == nil {
-				t.Fatalf("Expected error with message like: %q. Got \"nil\"", test.expectedMessage)
-			}
-
-			if !strings.Contains(err.Error(), test.expectedMessage) {
-				t.Fatalf("Expected error with message like %q. Got %q", test.expectedMessage, err.Error())
-			}
-
 		})
 	}
-}
-
-func TestForClause(t *testing.T) {
-	validFor := `show kills
-for team ic`
-	invalidFor := `show kills
-for win ic`
-	invalidTeam := `show kills
-for team i`
-	invalidPlayer := `show kills
-for player p`
-
-	tests := testCases{
-		{"valid", validFor, ""},
-		{"invalid dimension", invalidFor, "Invalid dimension used in the FOR clause!"},
-		{"invalid team", invalidTeam, "Unrecognized team i. Expected one of"},
-		{"invalid player", invalidPlayer, "Unrecognized player p. Expected one of"},
-	}
-
-	runTests(t, tests)
-}
-
-func TestByClause(t *testing.T) {
-	validBy := `show kills
-for team ic
-by player`
-	validByTwoDimensions := `show kills
-for team ic
-by player, game`
-	invalidDimension := `show kills
-for team ic
-by date`
-	teamAlreadyInFor := `show kills
-for team ic
-by team`
-	playerAlreadyInFor := `show kills
-for player ben
-by player`
-	gameUsedTwice := `show kills
-for team ic
-by game, game`
-	teamUsedTwice := `show kills
-for player ben
-by team, team`
-	playerUsedTwice := `show kills
-for team ic
-by player, player`
-
-	tests := testCases{
-		{"valid", validBy, ""},
-		{"valid with two dimensions", validByTwoDimensions, ""},
-		{"invalid dimenstion", invalidDimension, "Invalid dimension used in the BY clause! Got date. Expected one of 'team' or 'player'"},
-		{"team already in for", teamAlreadyInFor, "'team' dimension already used in FOR clause!"},
-		{"player already in for", playerAlreadyInFor, "'player' dimension already used in FOR clause!"},
-		{"game used twice", gameUsedTwice, "Used the same dimension 'game' more than once!"},
-		{"team used twice", teamUsedTwice, "Used the same dimension 'team' more than once!"},
-		{"player used twice", playerUsedTwice, "Used the same dimension 'player' more than once!"},
-	}
-
-	runTests(t, tests)
-}
-
-func TestShowClause(t *testing.T) {
-	validShow := `show kills
-for team ic`
-	aggregateInScalar := `show average kills
-for player ben
-by game`
-	aggregateInAggregate := `show max kills
-for player ben`
-	identifiers := `show (5 + 5) yep
-for player ben`
-	duplicateIdentifier := `show (5 + 5) yep, (2 - 3) yep
-for team it`
-	predicate := `show (5 > 5) yep
-for player ben`
-	scope := `show ben:kills
-for team ib`
-	invalidExpression := `show (average kills / 5) avg
-for team it
-by player, game`
-	invalidPredicate := `show (nope > 5) yep
-for team it`
-
-	tests := testCases{
-		{"valid show", validShow, ""},
-		{"aggregate in scalar", aggregateInScalar, "Cannot use aggregate functions in a scalar statement!"},
-		{"aggregate in aggregate", aggregateInAggregate, ""},
-		// TODO: How can I test identifiers are set correctly?
-		{"identifiers", identifiers, ""},
-		{"duplicate identifier", duplicateIdentifier, "Identifier \"yep\" already used!"},
-		{"predicate", predicate, ""},
-		{"scope", scope, ""},
-		{"invalid expression", invalidExpression, "Cannot use aggregate functions in a scalar statement!"},
-		{"invalid predicate", invalidPredicate, "Undeclared identifer: \"nope\""},
-	}
-
-	runTests(t, tests)
-}
-
-func testExpr(t *testing.T) {
-	valid := `show (kills / damage) test
-for team ic`
-	nonExistintIdentifierInShow := `show nope, (5 + 5) nope
-for player cody`
-	existintIdentifierInShow := `show (5 + 5) yep, yep
-for player cody`
-	nonExistintIdentifierInWhere := `show (5 + 5) yep
-for team ic
-where nope > 5`
-	exisitintIdentifierInWhere := `show (5 + 5) yep
-for team ic
-where yep > 5`
-	aggregateInScalar := `show kills
-for player ben
-by game
-where average damage > 4`
-	validAggregate := `show kills
-for player ben
-where average damage > 4`
-
-	tests := testCases{
-		{"valid expr", valid, ""},
-		{"non existint identifier in show", nonExistintIdentifierInShow, "Undeclared identifer: \"nope\""},
-		{"existint identifier in show", existintIdentifierInShow, ""},
-		{"non existint identifier in where", nonExistintIdentifierInWhere, "Undeclared identifer: \"nope\""},
-		{"existint identifier in where", exisitintIdentifierInWhere, ""},
-		{"aggregate in scalar", aggregateInScalar, "Cannot use aggregate functions in a scalar statement!"},
-		{"valid aggregate", validAggregate, ""},
-	}
-
-	runTests(t, tests)
-}
-
-func TestScope(t *testing.T) {
-	valid := `show ben:kills
-for team ib`
-	teamAndTeam := `show ib:kills
-for team ic`
-	invalidIdentifier := `show nope:kills
-for team ic`
-	teamDoesNotHavePlayer := `show ben:kills
-for team ic`
-	inShowClauseOfPlayerStatement := `show g:kills
-for player isaac`
-	invalidTypeInPlayerStatement := `show kills
-for player ben
-where ic:kills > 2`
-	validInPlayerStatement := `show kills
-for player ben
-where g:kills > 4`
-
-	tests := testCases{
-		{"valid scope", valid, ""},
-		{"team and team", teamAndTeam, "Identifier in scope cannot be mapped to a player! Got: ib. Expected one of"},
-		{"invalid identifier", invalidIdentifier, "Identifier in scope cannot be mapped to a player! Got: nope. Expected one of"},
-		{"team does not have player", teamDoesNotHavePlayer, "Player \"ben\" is not on Team \"ic\"!"},
-		{"in show clause of player statement", inShowClauseOfPlayerStatement, "Scope cannot be used in the SHOW clause of a statement with \"FOR player\""},
-		{"invalid type in player statement", invalidTypeInPlayerStatement, "Invalid scope type used in a statement with \"FOR player\". Got ic."},
-		{"valid in player statement", validInPlayerStatement, ""},
-	}
-
-	runTests(t, tests)
 }

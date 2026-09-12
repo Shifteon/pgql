@@ -12,8 +12,7 @@ import (
 func main() {
 	inputString := `show kills
 for player ben
-by game
-where kills + 2 > damage + 3 or (damage < 2 and 2 < 3 or (5 = 5 and 2 < 3))`
+where kills > 500 or g:damage = 10`
 	input := antlr.NewInputStream(inputString)
 
 	lexer := parser.NewpgqlLexer(input)
