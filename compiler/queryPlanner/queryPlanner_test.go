@@ -18,8 +18,8 @@ func buildStream(input string) *antlr.CommonTokenStream {
 	return stream
 }
 
-func assertEquality(t *testing.T, a any, b any) {
-	if diff := cmp.Diff(a, b); diff != "" {
+func assertEquality(t *testing.T, a any, b any, opts cmp.Options) {
+	if diff := cmp.Diff(a, b, opts); diff != "" {
 		t.Errorf("Expression mismatch (-expected +got):\n%s", diff)
 	}
 }
@@ -51,9 +51,10 @@ func TestPredicate(t *testing.T) {
 	singlePredicateStatement := createWhereContext("where kills > 2")
 	singlePredicateWant := Predicate{
 		Type:               PredComparison,
-		LeftExpr:           &Expression{Type: ExprMeasure, Measure: "kills"},
-		RightExpr:          &Expression{Type: ExprLiteral, LiteralValue: "2"},
+		LeftExpr:           &Expression{Type: ExprMeasure, Measure: "kills", GrainLevel: analyzer.GrainAggregate},
+		RightExpr:          &Expression{Type: ExprLiteral, LiteralValue: "2", GrainLevel: analyzer.GrainScalar},
 		ComparisonOperator: GreaterThan,
+		GrainLevel:         analyzer.GrainAggregate,
 	}
 
 	logicalPredicate := createWhereContext("where kills > 2 or damage < 100")
@@ -61,17 +62,20 @@ func TestPredicate(t *testing.T) {
 		Type: PredLogical,
 		LeftPred: &Predicate{
 			Type:               PredComparison,
-			LeftExpr:           &Expression{Type: ExprMeasure, Measure: "kills"},
-			RightExpr:          &Expression{Type: ExprLiteral, LiteralValue: "2"},
+			LeftExpr:           &Expression{Type: ExprMeasure, Measure: "kills", GrainLevel: analyzer.GrainAggregate},
+			RightExpr:          &Expression{Type: ExprLiteral, LiteralValue: "2", GrainLevel: analyzer.GrainScalar},
 			ComparisonOperator: GreaterThan,
+			GrainLevel:         analyzer.GrainAggregate,
 		},
 		RightPred: &Predicate{
 			Type:               PredComparison,
-			LeftExpr:           &Expression{Type: ExprMeasure, Measure: "damage"},
-			RightExpr:          &Expression{Type: ExprLiteral, LiteralValue: "100"},
+			LeftExpr:           &Expression{Type: ExprMeasure, Measure: "damage", GrainLevel: analyzer.GrainAggregate},
+			RightExpr:          &Expression{Type: ExprLiteral, LiteralValue: "100", GrainLevel: analyzer.GrainScalar},
 			ComparisonOperator: LesserThan,
+			GrainLevel:         analyzer.GrainAggregate,
 		},
 		LogicalOperator: LogicalOr,
+		GrainLevel:      analyzer.GrainAggregate,
 	}
 
 	notPredicate := createWhereContext("where not assists = 6")
@@ -79,10 +83,12 @@ func TestPredicate(t *testing.T) {
 		Type: PredNot,
 		LeftPred: &Predicate{
 			Type:               PredComparison,
-			LeftExpr:           &Expression{Type: ExprMeasure, Measure: "assists"},
-			RightExpr:          &Expression{Type: ExprLiteral, LiteralValue: "6"},
+			LeftExpr:           &Expression{Type: ExprMeasure, Measure: "assists", GrainLevel: analyzer.GrainAggregate},
+			RightExpr:          &Expression{Type: ExprLiteral, LiteralValue: "6", GrainLevel: analyzer.GrainScalar},
 			ComparisonOperator: Equal,
+			GrainLevel:         analyzer.GrainAggregate,
 		},
+		GrainLevel: analyzer.GrainAggregate,
 	}
 
 	parenPredicate := createWhereContext("where (rescues != 2 or damage >= 900) and kills <= 3")
@@ -95,23 +101,57 @@ func TestPredicate(t *testing.T) {
 			IsWithinParens:  true,
 			LeftPred: &Predicate{
 				Type:               PredComparison,
-				LeftExpr:           &Expression{Type: ExprMeasure, Measure: "rescues"},
-				RightExpr:          &Expression{Type: ExprLiteral, LiteralValue: "2"},
+				LeftExpr:           &Expression{Type: ExprMeasure, Measure: "rescues", GrainLevel: analyzer.GrainAggregate},
+				RightExpr:          &Expression{Type: ExprLiteral, LiteralValue: "2", GrainLevel: analyzer.GrainScalar},
 				ComparisonOperator: NotEqual,
+				GrainLevel:         analyzer.GrainAggregate,
 			},
 			RightPred: &Predicate{
 				Type:               PredComparison,
-				LeftExpr:           &Expression{Type: ExprMeasure, Measure: "damage"},
-				RightExpr:          &Expression{Type: ExprLiteral, LiteralValue: "900"},
+				LeftExpr:           &Expression{Type: ExprMeasure, Measure: "damage", GrainLevel: analyzer.GrainAggregate},
+				RightExpr:          &Expression{Type: ExprLiteral, LiteralValue: "900", GrainLevel: analyzer.GrainScalar},
 				ComparisonOperator: GreaterOrEqual,
+				GrainLevel:         analyzer.GrainAggregate,
 			},
+			GrainLevel: analyzer.GrainAggregate,
 		},
 		RightPred: &Predicate{
 			Type:               PredComparison,
-			LeftExpr:           &Expression{Type: ExprMeasure, Measure: "kills"},
-			RightExpr:          &Expression{Type: ExprLiteral, LiteralValue: "3"},
+			LeftExpr:           &Expression{Type: ExprMeasure, Measure: "kills", GrainLevel: analyzer.GrainAggregate},
+			RightExpr:          &Expression{Type: ExprLiteral, LiteralValue: "3", GrainLevel: analyzer.GrainScalar},
 			ComparisonOperator: LesserOrEqual,
+			GrainLevel:         analyzer.GrainAggregate,
 		},
+		GrainLevel: analyzer.GrainAggregate,
+	}
+
+	logicalAndMultipleGrain := createWhereContext("where ben:kills > 5 and damage < 6")
+	logicalAndMultipleGrainWant := Predicate{
+		Type:            PredLogical,
+		LogicalOperator: LogicalAnd,
+		LeftPred: &Predicate{
+			Type:               PredComparison,
+			ComparisonOperator: GreaterThan,
+			LeftExpr: &Expression{
+				Type: ExprScope,
+				Scope: Scope{
+					EntityType:  PlayerEntity,
+					EntityValue: "ben",
+					Measure:     "kills",
+				},
+				GrainLevel: analyzer.GrainScalar,
+			},
+			RightExpr:  &Expression{Type: ExprLiteral, LiteralValue: "5", GrainLevel: analyzer.GrainScalar},
+			GrainLevel: analyzer.GrainScalar,
+		},
+		RightPred: &Predicate{
+			Type:               PredComparison,
+			ComparisonOperator: LesserThan,
+			LeftExpr:           &Expression{Type: ExprMeasure, Measure: "damage", GrainLevel: analyzer.GrainAggregate},
+			RightExpr:          &Expression{Type: ExprLiteral, LiteralValue: "6", GrainLevel: analyzer.GrainScalar},
+			GrainLevel:         analyzer.GrainAggregate,
+		},
+		GrainLevel: analyzer.GrainAggregate,
 	}
 
 	testCases := []predicateTestCase{
@@ -119,13 +159,14 @@ func TestPredicate(t *testing.T) {
 		{logicalPredicate, logicalPredicateWant},
 		{notPredicate, notPredicateWant},
 		{parenPredicate, parenPredicateWant},
+		{logicalAndMultipleGrain, logicalAndMultipleGrainWant},
 	}
 
 	for _, testCase := range testCases {
 		q := QueryPlanner{}
 		got := q.VisitWhereClause(testCase.input)
 
-		assertEquality(t, testCase.expectedPredicate, got)
+		assertEquality(t, testCase.expectedPredicate, got, nil)
 	}
 }
 
@@ -146,23 +187,24 @@ type exprTestCase struct {
 func TestExpression(t *testing.T) {
 	binaryOp := createExprContext("kills + 1")
 	binaryOpWant := Expression{
-		Type:     ExprBinaryOp,
-		Operator: internal.Add,
-		Left:     &Expression{Type: ExprMeasure, Measure: "kills"},
-		Right:    &Expression{Type: ExprLiteral, LiteralValue: "1"},
+		Type:       ExprBinaryOp,
+		Operator:   internal.Add,
+		Left:       &Expression{Type: ExprMeasure, Measure: "kills", GrainLevel: analyzer.GrainAggregate},
+		Right:      &Expression{Type: ExprLiteral, LiteralValue: "1", GrainLevel: analyzer.GrainScalar},
+		GrainLevel: analyzer.GrainAggregate,
 	}
 
 	aggregate := createExprContext("average kills")
-	aggregateWant := Expression{Type: ExprAggregate, Aggregate: Average, Measure: "kills"}
+	aggregateWant := Expression{Type: ExprAggregate, Aggregate: Average, Measure: "kills", GrainLevel: analyzer.GrainAggregate}
 
 	aggregateSum := createExprContext("total kills")
-	aggregateSumWant := Expression{Type: ExprAggregate, Aggregate: Sum, Measure: "kills"}
+	aggregateSumWant := Expression{Type: ExprAggregate, Aggregate: Sum, Measure: "kills", GrainLevel: analyzer.GrainAggregate}
 
 	aggregateMax := createExprContext("max kills")
-	aggregateMaxWant := Expression{Type: ExprAggregate, Aggregate: Max, Measure: "kills"}
+	aggregateMaxWant := Expression{Type: ExprAggregate, Aggregate: Max, Measure: "kills", GrainLevel: analyzer.GrainAggregate}
 
 	aggregateMin := createExprContext("min kills")
-	aggregateMinWant := Expression{Type: ExprAggregate, Aggregate: Min, Measure: "kills"}
+	aggregateMinWant := Expression{Type: ExprAggregate, Aggregate: Min, Measure: "kills", GrainLevel: analyzer.GrainAggregate}
 
 	parens := createExprContext("(rescues - 2) * 3")
 	parensWant := Expression{
@@ -172,10 +214,12 @@ func TestExpression(t *testing.T) {
 			Type:           ExprBinaryOp,
 			IsWithinParens: true,
 			Operator:       internal.Subtract,
-			Left:           &Expression{Type: ExprMeasure, Measure: "rescues"},
-			Right:          &Expression{Type: ExprLiteral, LiteralValue: "2"},
+			Left:           &Expression{Type: ExprMeasure, Measure: "rescues", GrainLevel: analyzer.GrainAggregate},
+			Right:          &Expression{Type: ExprLiteral, LiteralValue: "2", GrainLevel: analyzer.GrainScalar},
+			GrainLevel:     analyzer.GrainAggregate,
 		},
-		Right: &Expression{Type: ExprLiteral, LiteralValue: "3"},
+		Right:      &Expression{Type: ExprLiteral, LiteralValue: "3", GrainLevel: analyzer.GrainScalar},
+		GrainLevel: analyzer.GrainAggregate,
 	}
 
 	identifiers := createExprContext("ident / kills")
@@ -186,14 +230,16 @@ func TestExpression(t *testing.T) {
 			Type:       ExprBinaryOp,
 			Operator:   internal.Add,
 			Identifier: "ident",
-			Left:       &Expression{Type: ExprLiteral, LiteralValue: "3"},
-			Right:      &Expression{Type: ExprMeasure, Measure: "recalls"},
+			Left:       &Expression{Type: ExprLiteral, LiteralValue: "3", GrainLevel: analyzer.GrainScalar},
+			Right:      &Expression{Type: ExprMeasure, Measure: "recalls", GrainLevel: analyzer.GrainAggregate},
+			GrainLevel: analyzer.GrainAggregate,
 		},
-		Right: &Expression{Type: ExprMeasure, Measure: "kills"},
+		Right:      &Expression{Type: ExprMeasure, Measure: "kills", GrainLevel: analyzer.GrainAggregate},
+		GrainLevel: analyzer.GrainAggregate,
 	}
 	identifiersAnalyzer := analyzer.Analyzer{
 		Identifiers: map[string]analyzer.IdentifierValue{
-			"ident": {Expr: createExprContext("3 + recalls")},
+			"ident": {Expr: analyzer.Expression{ExprCtx: createExprContext("3 + recalls")}},
 		},
 	}
 
@@ -208,8 +254,10 @@ func TestExpression(t *testing.T) {
 				EntityValue: "ben",
 				Measure:     "kills",
 			},
+			GrainLevel: analyzer.GrainScalar,
 		},
-		Right: &Expression{Type: ExprLiteral, LiteralValue: ".5"},
+		Right:      &Expression{Type: ExprLiteral, LiteralValue: ".5", GrainLevel: analyzer.GrainScalar},
+		GrainLevel: analyzer.GrainScalar,
 	}
 
 	testCases := []exprTestCase{
@@ -228,7 +276,7 @@ func TestExpression(t *testing.T) {
 			Analyzer: testCase.a,
 		}
 		expr := q.VisitExpr(&testCase.input).(Expression)
-		assertEquality(t, testCase.expected, expr)
+		assertEquality(t, testCase.expected, expr, nil)
 	}
 }
 
@@ -287,7 +335,7 @@ func TestScope(t *testing.T) {
 			Analyzer: testCase.a,
 		}
 		scope := q.VisitScope(&testCase.input).(Scope)
-		assertEquality(t, testCase.expected, scope)
+		assertEquality(t, testCase.expected, scope, nil)
 	}
 }
 
@@ -326,7 +374,7 @@ func TestCreateProjections(t *testing.T) {
 
 	expressionProj := analyzer.Analyzer{
 		Projections: []analyzer.Projection{
-			{Expression: createExprContext("kills + 2"), Identifier: "test"},
+			{Expression: analyzer.Expression{ExprCtx: createExprContext("kills + 2"), GrainLevel: analyzer.GrainAggregate}, Identifier: "test"},
 		},
 	}
 	expressionProjWant := []Projection{
@@ -334,17 +382,18 @@ func TestCreateProjections(t *testing.T) {
 			Type: ProjExpr,
 			Name: "test",
 			Expression: Expression{
-				Type:     ExprBinaryOp,
-				Operator: internal.Add,
-				Left:     &Expression{Type: ExprMeasure, Measure: "kills"},
-				Right:    &Expression{Type: ExprLiteral, LiteralValue: "2"},
+				Type:       ExprBinaryOp,
+				Operator:   internal.Add,
+				Left:       &Expression{Type: ExprMeasure, Measure: "kills", GrainLevel: analyzer.GrainAggregate},
+				Right:      &Expression{Type: ExprLiteral, LiteralValue: "2", GrainLevel: analyzer.GrainScalar},
+				GrainLevel: analyzer.GrainAggregate,
 			},
 		},
 	}
 
 	predicateProj := analyzer.Analyzer{
 		Projections: []analyzer.Projection{
-			{Predicate: createPredicateContext("damage > 300"), Identifier: "test"},
+			{Predicate: analyzer.Predicate{PredCtx: createPredicateContext("damage > 300")}, Identifier: "test"},
 		},
 	}
 	predicateProjWant := []Projection{
@@ -354,8 +403,9 @@ func TestCreateProjections(t *testing.T) {
 			Predicate: Predicate{
 				Type:               PredComparison,
 				ComparisonOperator: GreaterThan,
-				LeftExpr:           &Expression{Type: ExprMeasure, Measure: "damage"},
-				RightExpr:          &Expression{Type: ExprLiteral, LiteralValue: "300"},
+				LeftExpr:           &Expression{Type: ExprMeasure, Measure: "damage", GrainLevel: analyzer.GrainAggregate},
+				RightExpr:          &Expression{Type: ExprLiteral, LiteralValue: "300", GrainLevel: analyzer.GrainScalar},
+				GrainLevel:         analyzer.GrainAggregate,
 			},
 		},
 	}
@@ -388,6 +438,6 @@ func TestCreateProjections(t *testing.T) {
 			},
 		}
 		q.createProjections()
-		assertEquality(t, testCase.expectedProjections, q.QueryPlan.Projections)
+		assertEquality(t, testCase.expectedProjections, q.QueryPlan.Projections, nil)
 	}
 }

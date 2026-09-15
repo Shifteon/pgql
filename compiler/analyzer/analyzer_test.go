@@ -361,8 +361,8 @@ func TestShowClause(t *testing.T) {
 				if !exists {
 					t.Fatalf("Expected identifier 'yep' in Identifiers map")
 				}
-				if val.Expr == nil {
-					t.Fatalf("Expected identifier 'yep' to have non-nil Expr")
+				if val.Type != IdenitifierExpr {
+					t.Fatalf("Expected identifier 'yep' to have IdentifierExpr type")
 				}
 			},
 			expectedMessage: "",
@@ -389,8 +389,8 @@ func TestShowClause(t *testing.T) {
 				if !exists {
 					t.Fatalf("Expected identifier 'yep' in Identifiers map")
 				}
-				if val.Pred == nil {
-					t.Fatalf("Expected identifier 'yep' to have non-nil Pred")
+				if val.Type != IdenitifierPred {
+					t.Fatalf("Expected identifier 'yep' to have IdentifierPred type")
 				}
 			},
 			expectedMessage: "",
@@ -420,14 +420,14 @@ func TestShowClause(t *testing.T) {
 			input: createShowContext("show yep"),
 			a: Analyzer{
 				Identifiers: map[string]IdentifierValue{
-					"yep": {Expr: createExprContext("5 + 5")},
+					"yep": {Expr: Expression{ExprCtx: createExprContext("5 + 5")}, Type: IdenitifierExpr},
 				},
 			},
 			checkIdentifiers: func(t *testing.T, a *Analyzer) {
 				if len(a.Projections) != 1 {
 					t.Fatalf("Expected 1 projection, got %d", len(a.Projections))
 				}
-				if a.Projections[0].Expression == nil {
+				if a.Projections[0].Expression.ExprCtx == nil {
 					t.Fatalf("Expected non-nil Expression on resolved projection")
 				}
 			},
@@ -499,7 +499,7 @@ func TestExpr(t *testing.T) {
 			input: createExprContext("yep + 10"),
 			a: Analyzer{
 				Identifiers: map[string]IdentifierValue{
-					"yep": {Expr: createExprContext("5 + 5")},
+					"yep": {Expr: Expression{ExprCtx: createExprContext("5 + 5")}},
 				},
 			},
 			expectedMessage: "",
@@ -822,6 +822,18 @@ func TestPredicate(t *testing.T) {
 			},
 			expectedMessage: "",
 		},
+		{
+			name:  "logical or nested mismatched grains",
+			input: createPredicateContext("ben: kills > 4 and damage < 200 or damage > 3 or ben:kills < 3"),
+			a: Analyzer{
+				Grain: Grain{
+					BaseDimension:      TeamDimension,
+					BaseDimensionValue: "ib",
+					Refinements:        []Dimension{},
+				},
+			},
+			expectedMessage: "Both sides of an OR must share the same grain level!",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -921,7 +933,7 @@ func TestGetExpressionGrainLevel(t *testing.T) {
 			input: "coarse",
 			a: Analyzer{
 				Grain:       Grain{BaseDimension: TeamDimension},
-				Identifiers: map[string]IdentifierValue{"coarse": {Expr: createExprContext("ben:kills + 30")}},
+				Identifiers: map[string]IdentifierValue{"coarse": {Expr: Expression{ExprCtx: createExprContext("ben:kills + 30")}}},
 			},
 			expected: GrainAggregate,
 		},
@@ -930,7 +942,7 @@ func TestGetExpressionGrainLevel(t *testing.T) {
 			input: "fine",
 			a: Analyzer{
 				Grain:       Grain{BaseDimension: TeamDimension, Refinements: []Dimension{GameDimension}},
-				Identifiers: map[string]IdentifierValue{"fine": {Expr: createExprContext("ben:kills / 2")}},
+				Identifiers: map[string]IdentifierValue{"fine": {Expr: Expression{ExprCtx: createExprContext("ben:kills / 2")}}},
 			},
 			expected: GrainScalar,
 		},
@@ -960,7 +972,7 @@ func TestGetExpressionGrainLevel(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		got := testCase.a.getExpressionGrainLevel(createExprContext(testCase.input))
+		got := testCase.a.GetExpressionGrainLevel(createExprContext(testCase.input))
 		if got != testCase.expected {
 			t.Errorf("Test Failed: %v. Expected %v, got %v", testCase.name, testCase.expected, got)
 		}
@@ -997,24 +1009,24 @@ func TestGetPredicateGrainLevel(t *testing.T) {
 			expected: GrainAggregate,
 		},
 		{
-			name:     "Scalar for left-hand side scalar AND",
+			name:     "Aggregate for left-hand side scalar AND",
 			input:    "ben:kills > 2 and damage < 100",
-			expected: GrainScalar,
+			expected: GrainAggregate,
 		},
 		{
-			name:     "Scalar for right-hand side scalar AND",
+			name:     "Aggregate for right-hand side scalar AND",
 			input:    "kills > 2 and ben:damage < 100",
-			expected: GrainScalar,
+			expected: GrainAggregate,
 		},
 		{
-			name:     "Scalar for left-hand side scalar OR",
+			name:     "Aggregate for left-hand side scalar OR",
 			input:    "ben:kills > 2 or damage < 100",
-			expected: GrainScalar,
+			expected: GrainAggregate,
 		},
 		{
-			name:     "Scalar for right-hand side scalar OR",
+			name:     "Aggregate for right-hand side scalar OR",
 			input:    "damage < 100 or ben:kills > 2",
-			expected: GrainScalar,
+			expected: GrainAggregate,
 		},
 		{
 			name:     "Scalar for NOT scoped comparison",
@@ -1026,7 +1038,7 @@ func TestGetPredicateGrainLevel(t *testing.T) {
 			input: "scalarstat > 2",
 			a: Analyzer{
 				Identifiers: map[string]IdentifierValue{
-					"aggstat": {Expr: createExprContext("damage")},
+					"aggstat": {Expr: Expression{ExprCtx: createExprContext("damage")}},
 				},
 				Grain: Grain{BaseDimension: TeamDimension, Refinements: []Dimension{GameDimension}},
 			},
@@ -1037,7 +1049,7 @@ func TestGetPredicateGrainLevel(t *testing.T) {
 			input: "aggstat > 2",
 			a: Analyzer{
 				Identifiers: map[string]IdentifierValue{
-					"aggstat": {Expr: createExprContext("damage")},
+					"aggstat": {Expr: Expression{ExprCtx: createExprContext("damage")}},
 				},
 			},
 			expected: GrainAggregate,
@@ -1045,7 +1057,7 @@ func TestGetPredicateGrainLevel(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		got := testCase.a.getPredicateGrainLevel(createPredicateContext(testCase.input))
+		got := testCase.a.GetPredicateGrainLevel(createPredicateContext(testCase.input))
 		if got != testCase.expected {
 			t.Errorf("Test Failed: %v. Expected %v, got %v", testCase.name, testCase.expected, got)
 		}

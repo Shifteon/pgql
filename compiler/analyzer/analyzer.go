@@ -38,6 +38,14 @@ const (
 	GrainScalar
 )
 
+type IdenitifierType int
+
+const (
+	UnkownIdentifier IdenitifierType = iota
+	IdenitifierExpr
+	IdenitifierPred
+)
+
 // all of the valid team options
 var teams = []string{"ictb", "itb", "icb", "ctb", "ict", "ib", "ic", "it"}
 
@@ -55,9 +63,20 @@ var teamPlayers = map[string][]string{
 	"it":   {"isaac", "trenton"},
 }
 
+type Expression struct {
+	ExprCtx    *parser.ExprContext
+	GrainLevel GrainLevel
+}
+
+type Predicate struct {
+	PredCtx    *parser.PredicateContext
+	GrainLevel GrainLevel
+}
+
 type IdentifierValue struct {
-	Expr parser.IExprContext
-	Pred parser.IPredicateContext
+	Type IdenitifierType
+	Expr Expression
+	Pred Predicate
 }
 
 type Grain struct {
@@ -70,8 +89,8 @@ type Projection struct {
 	Measure    string
 	Aggregate  string
 	Identifier string
-	Expression parser.IExprContext
-	Predicate  parser.IPredicateContext
+	Expression Expression
+	Predicate  Predicate
 	Scope      parser.IScopeContext
 }
 
@@ -238,6 +257,15 @@ func (a *Analyzer) VisitShowBody(ctx *parser.ShowBodyContext) any {
 
 func (a *Analyzer) VisitShowFragment(ctx *parser.ShowFragmentContext) any {
 	projection := Projection{}
+
+	// TODO: Should I consolidate this logic?
+	var grainLevel GrainLevel
+	if slices.Contains(a.Grain.Refinements, GameDimension) {
+		grainLevel = GrainScalar
+	} else {
+		grainLevel = GrainAggregate
+	}
+
 	if ctx.Scope() != nil {
 		result := a.Visit(ctx.Scope()).(result)
 		if result.err != nil {
@@ -276,15 +304,17 @@ func (a *Analyzer) VisitShowFragment(ctx *parser.ShowFragmentContext) any {
 			if result.err != nil {
 				return result
 			}
-			a.Identifiers[identifier] = IdentifierValue{Expr: ctx.Expr()}
-			projection.Expression = ctx.Expr()
+			expr := Expression{ExprCtx: ctx.Expr().(*parser.ExprContext), GrainLevel: grainLevel}
+			a.Identifiers[identifier] = IdentifierValue{Expr: expr, Type: IdenitifierExpr}
+			projection.Expression = expr
 		} else if ctx.Predicate() != nil {
 			result := a.Visit(ctx.Predicate()).(result)
 			if result.err != nil {
 				return result
 			}
-			a.Identifiers[identifier] = IdentifierValue{Pred: ctx.Predicate()}
-			projection.Predicate = ctx.Predicate()
+			pred := Predicate{PredCtx: ctx.Predicate().(*parser.PredicateContext), GrainLevel: grainLevel}
+			a.Identifiers[identifier] = IdentifierValue{Pred: pred, Type: IdenitifierPred}
+			projection.Predicate = pred
 		} else {
 			// This should never happen since the parser should catch this. Just being safe
 			return fail(fmt.Sprintf("Could not find expression or predicate preceding identifier \"%q\"", identifier), ctx.IDENTIFIER().GetSymbol())
@@ -299,11 +329,12 @@ func (a *Analyzer) VisitShowFragment(ctx *parser.ShowFragmentContext) any {
 			return fail(fmt.Sprintf("Undeclared identifer: \"%v\"", identifier), ctx.IDENTIFIER().GetSymbol())
 		}
 
-		if value.Expr != nil {
+		switch value.Type {
+		case IdenitifierExpr:
 			projection.Expression = value.Expr
-		} else if value.Pred != nil {
+		case IdenitifierPred:
 			projection.Predicate = value.Pred
-		} else {
+		default:
 			// This should not happen. Major bug if so
 			return fail(fmt.Sprintf("Fatal! Somehow identifier exists but does not map to an expression or a predicate! \"%v\"", identifier), ctx.IDENTIFIER().GetSymbol())
 		}
@@ -348,7 +379,7 @@ func (a *Analyzer) VisitSortBody(ctx *parser.SortBodyContext) any {
 	return ok()
 }
 
-func (a *Analyzer) getExpressionGrainLevel(expr *parser.ExprContext) GrainLevel {
+func (a *Analyzer) GetExpressionGrainLevel(expr *parser.ExprContext) GrainLevel {
 	// We consider it scalar if we are at the game level
 	if slices.Contains(a.Grain.Refinements, GameDimension) {
 		return GrainScalar
@@ -357,11 +388,11 @@ func (a *Analyzer) getExpressionGrainLevel(expr *parser.ExprContext) GrainLevel 
 	grainLevel := GrainAggregate
 
 	if expr.LPAREN() != nil {
-		grainLevel = a.getExpressionGrainLevel(expr.Expr(0).(*parser.ExprContext))
+		grainLevel = a.GetExpressionGrainLevel(expr.Expr(0).(*parser.ExprContext))
 	} else if expr.IDENTIFIER() != nil {
 		// Identifiers inherit the statement grain level no matter what since they are defined in the SHOW
-		e := a.Identifiers[expr.IDENTIFIER().GetText()].Expr
-		if e != nil {
+		e := a.Identifiers[expr.IDENTIFIER().GetText()]
+		if e.Type != UnkownIdentifier {
 			// we can only get to this point if the statement is not at the game level so it must be aggregate
 			grainLevel = GrainAggregate
 		}
@@ -370,8 +401,8 @@ func (a *Analyzer) getExpressionGrainLevel(expr *parser.ExprContext) GrainLevel 
 		leftExpr := expr.Expr(0)
 		rightExpr := expr.Expr(1)
 
-		leftGrainLevel = a.getExpressionGrainLevel(leftExpr.(*parser.ExprContext))
-		rightGrainLevel = a.getExpressionGrainLevel(rightExpr.(*parser.ExprContext))
+		leftGrainLevel = a.GetExpressionGrainLevel(leftExpr.(*parser.ExprContext))
+		rightGrainLevel = a.GetExpressionGrainLevel(rightExpr.(*parser.ExprContext))
 
 		// The rule is that if any side of an expression contains an unscoped measure
 		// then the whole expression is evaluated at the statement grain
@@ -397,7 +428,7 @@ func (a *Analyzer) getExpressionGrainLevel(expr *parser.ExprContext) GrainLevel 
 	return grainLevel
 }
 
-func (a *Analyzer) getPredicateGrainLevel(ctx *parser.PredicateContext) GrainLevel {
+func (a *Analyzer) GetPredicateGrainLevel(ctx *parser.PredicateContext) GrainLevel {
 	grainLevel := GrainAggregate
 
 	if slices.Contains(a.Grain.Refinements, GameDimension) {
@@ -405,8 +436,8 @@ func (a *Analyzer) getPredicateGrainLevel(ctx *parser.PredicateContext) GrainLev
 	}
 
 	if ctx.ComparisonOperator() != nil {
-		leftGrainLevel := a.getExpressionGrainLevel(ctx.Expr(0).(*parser.ExprContext))
-		rightGrainLevel := a.getExpressionGrainLevel(ctx.Expr(1).(*parser.ExprContext))
+		leftGrainLevel := a.GetExpressionGrainLevel(ctx.Expr(0).(*parser.ExprContext))
+		rightGrainLevel := a.GetExpressionGrainLevel(ctx.Expr(1).(*parser.ExprContext))
 
 		// If either side is aggregate the whole thing is aggregate
 		if leftGrainLevel == GrainAggregate || rightGrainLevel == GrainAggregate {
@@ -415,12 +446,12 @@ func (a *Analyzer) getPredicateGrainLevel(ctx *parser.PredicateContext) GrainLev
 			grainLevel = GrainScalar
 		}
 	} else if ctx.LOGICALNOT() != nil || ctx.LPAREN() != nil {
-		grainLevel = a.getPredicateGrainLevel(ctx.Predicate(0).(*parser.PredicateContext))
+		grainLevel = a.GetPredicateGrainLevel(ctx.Predicate(0).(*parser.PredicateContext))
 	} else if ctx.LOGICALOR() != nil || ctx.LOGICALAND() != nil {
-		leftGrainLevel := a.getPredicateGrainLevel(ctx.Predicate(0).(*parser.PredicateContext))
-		rightGrainLevel := a.getPredicateGrainLevel(ctx.Predicate(1).(*parser.PredicateContext))
-		if leftGrainLevel == GrainScalar || rightGrainLevel == GrainScalar {
-			grainLevel = GrainScalar
+		leftGrainLevel := a.GetPredicateGrainLevel(ctx.Predicate(0).(*parser.PredicateContext))
+		rightGrainLevel := a.GetPredicateGrainLevel(ctx.Predicate(1).(*parser.PredicateContext))
+		if leftGrainLevel == GrainAggregate || rightGrainLevel == GrainAggregate {
+			grainLevel = GrainAggregate
 		}
 	}
 
@@ -447,8 +478,8 @@ func (a *Analyzer) VisitPredicate(ctx *parser.PredicateContext) any {
 
 		// both sides of an OR must have the same grain level
 		if ctx.LOGICALOR() != nil && !slices.Contains(a.Grain.Refinements, GameDimension) {
-			leftGrainLevel := a.getPredicateGrainLevel(ctx.Predicate(0).(*parser.PredicateContext))
-			rightGrainLevel := a.getPredicateGrainLevel(ctx.Predicate(1).(*parser.PredicateContext))
+			leftGrainLevel := a.GetPredicateGrainLevel(ctx.Predicate(0).(*parser.PredicateContext))
+			rightGrainLevel := a.GetPredicateGrainLevel(ctx.Predicate(1).(*parser.PredicateContext))
 			if leftGrainLevel != rightGrainLevel {
 				// TODO: Better message
 				return fail("Both sides of an OR must share the same grain level!", ctx.GetStart())

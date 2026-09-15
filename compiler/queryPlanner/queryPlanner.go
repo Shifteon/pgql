@@ -97,6 +97,7 @@ type Expression struct {
 	Identifier   string
 
 	IsWithinParens bool
+	GrainLevel     analyzer.GrainLevel
 }
 
 type PredicateType int
@@ -121,6 +122,7 @@ type Predicate struct {
 	RightPred       *Predicate
 
 	IsWithinParens bool
+	GrainLevel     analyzer.GrainLevel
 }
 
 type ProjectionType int
@@ -197,15 +199,15 @@ func (q *QueryPlanner) createProjections() {
 		} else if projection.Measure != "" {
 			queryProjection.Type = ProjMeasure
 			queryProjection.Measure = projection.Measure
-		} else if projection.Expression != nil {
+		} else if projection.Expression.ExprCtx != nil {
 			queryProjection.Type = ProjExpr
 			// TODO: Is there a better place/way to do this type assertion?
-			queryProjection.Expression = q.VisitExpr(projection.Expression.(*parser.ExprContext)).(Expression)
+			queryProjection.Expression = q.VisitExpr(projection.Expression.ExprCtx).(Expression)
 			queryProjection.Name = projection.Identifier
-		} else if projection.Predicate != nil {
+		} else if projection.Predicate.PredCtx != nil {
 			queryProjection.Type = ProjPred
 			// TODO: Is there a better place/way to do this type assertion?
-			queryProjection.Predicate = q.VisitPredicate(projection.Predicate.(*parser.PredicateContext)).(Predicate)
+			queryProjection.Predicate = q.VisitPredicate(projection.Predicate.PredCtx).(Predicate)
 			queryProjection.Name = projection.Identifier
 		} else if projection.Scope != nil {
 			queryProjection.Type = ProjScope
@@ -240,6 +242,8 @@ func (q *QueryPlanner) VisitWhereClause(ctx *parser.WhereClauseContext) any {
 
 func (q *QueryPlanner) VisitPredicate(ctx *parser.PredicateContext) any {
 	predicate := Predicate{}
+	predicate.GrainLevel = q.Analyzer.GetPredicateGrainLevel(ctx)
+
 	if ctx.LPAREN() != nil {
 		predicate = q.Visit(ctx.Predicate(0)).(Predicate)
 		predicate.IsWithinParens = true
@@ -286,13 +290,17 @@ func (q *QueryPlanner) VisitPredicate(ctx *parser.PredicateContext) any {
 
 func (q *QueryPlanner) VisitExpr(ctx *parser.ExprContext) any {
 	expression := Expression{}
+	// This is not efficient since we walk the tree twice
+	// but it is better for readability etc and I don't think it will be an issue
+	expression.GrainLevel = q.Analyzer.GetExpressionGrainLevel(ctx)
+
 	if ctx.LPAREN() != nil {
 		expression = q.Visit(ctx.Expr(0)).(Expression)
 		expression.IsWithinParens = true
 	} else if ctx.IDENTIFIER() != nil {
 		expr := q.Analyzer.Identifiers[ctx.IDENTIFIER().GetText()].Expr
-		if expr != nil {
-			expression = q.Visit(expr).(Expression)
+		if expr.ExprCtx != nil {
+			expression = q.Visit(expr.ExprCtx).(Expression)
 			expression.Identifier = ctx.IDENTIFIER().GetText()
 		}
 	} else if operator := internal.CheckAndReturnOperator(ctx); operator != internal.UnknownOperator {
