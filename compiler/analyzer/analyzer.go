@@ -33,7 +33,8 @@ const (
 type GrainLevel int
 
 const (
-	GrainAggregate GrainLevel = iota
+	UnkownGrain GrainLevel = iota
+	GrainAggregate
 	GrainScalar
 )
 
@@ -348,24 +349,47 @@ func (a *Analyzer) VisitSortBody(ctx *parser.SortBodyContext) any {
 }
 
 func (a *Analyzer) getExpressionGrainLevel(expr *parser.ExprContext) GrainLevel {
+	// We consider it scalar if we are at the game level
+	if slices.Contains(a.Grain.Refinements, GameDimension) {
+		return GrainScalar
+	}
+
 	grainLevel := GrainAggregate
 
 	if expr.LPAREN() != nil {
 		grainLevel = a.getExpressionGrainLevel(expr.Expr(0).(*parser.ExprContext))
 	} else if expr.IDENTIFIER() != nil {
+		// Identifiers inherit the statement grain level no matter what since they are defined in the SHOW
 		e := a.Identifiers[expr.IDENTIFIER().GetText()].Expr
 		if e != nil {
-			grainLevel = a.getExpressionGrainLevel(e.(*parser.ExprContext))
+			// we can only get to this point if the statement is not at the game level so it must be aggregate
+			grainLevel = GrainAggregate
 		}
 	} else if operator := internal.CheckAndReturnOperator(expr); operator != internal.UnknownOperator {
-		leftGrainLevel := a.getExpressionGrainLevel(expr.Expr(0).(*parser.ExprContext))
-		rightGrainLevel := a.getExpressionGrainLevel(expr.Expr(1).(*parser.ExprContext))
+		var leftGrainLevel, rightGrainLevel GrainLevel
+		leftExpr := expr.Expr(0)
+		rightExpr := expr.Expr(1)
 
-		if leftGrainLevel == GrainScalar || rightGrainLevel == GrainScalar {
+		leftGrainLevel = a.getExpressionGrainLevel(leftExpr.(*parser.ExprContext))
+		rightGrainLevel = a.getExpressionGrainLevel(rightExpr.(*parser.ExprContext))
+
+		// The rule is that if any side of an expression contains an unscoped measure
+		// then the whole expression is evaluated at the statement grain
+		if leftGrainLevel == GrainAggregate || rightGrainLevel == GrainAggregate {
+			grainLevel = GrainAggregate
+		} else {
 			grainLevel = GrainScalar
 		}
-	} else { // leaf
+	} else { // leafs
 		if expr.Scope() != nil {
+			grainLevel = GrainScalar
+			if expr.Scope().AggregateFunction() != nil {
+				grainLevel = GrainAggregate
+			}
+		} else if expr.Measure() != nil || expr.AggregateFunction() != nil {
+			grainLevel = GrainAggregate
+		} else if expr.NUMBER() != nil {
+			// we set this to grain scalar so the other side can override it if it is aggregate
 			grainLevel = GrainScalar
 		}
 	}
@@ -376,11 +400,18 @@ func (a *Analyzer) getExpressionGrainLevel(expr *parser.ExprContext) GrainLevel 
 func (a *Analyzer) getPredicateGrainLevel(ctx *parser.PredicateContext) GrainLevel {
 	grainLevel := GrainAggregate
 
+	if slices.Contains(a.Grain.Refinements, GameDimension) {
+		return GrainScalar
+	}
+
 	if ctx.ComparisonOperator() != nil {
 		leftGrainLevel := a.getExpressionGrainLevel(ctx.Expr(0).(*parser.ExprContext))
 		rightGrainLevel := a.getExpressionGrainLevel(ctx.Expr(1).(*parser.ExprContext))
 
-		if leftGrainLevel == GrainScalar || rightGrainLevel == GrainScalar {
+		// If either side is aggregate the whole thing is aggregate
+		if leftGrainLevel == GrainAggregate || rightGrainLevel == GrainAggregate {
+			grainLevel = GrainAggregate
+		} else {
 			grainLevel = GrainScalar
 		}
 	} else if ctx.LOGICALNOT() != nil || ctx.LPAREN() != nil {
@@ -414,9 +445,7 @@ func (a *Analyzer) VisitPredicate(ctx *parser.PredicateContext) any {
 			return rightResult
 		}
 
-		// both side of an OR must have the same grain level
-		// in other words, if we are not at the game level and one side has a scope and
-		// the other side has a non-scope, that is invalid
+		// both sides of an OR must have the same grain level
 		if ctx.LOGICALOR() != nil && !slices.Contains(a.Grain.Refinements, GameDimension) {
 			leftGrainLevel := a.getPredicateGrainLevel(ctx.Predicate(0).(*parser.PredicateContext))
 			rightGrainLevel := a.getPredicateGrainLevel(ctx.Predicate(1).(*parser.PredicateContext))

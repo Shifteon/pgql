@@ -871,89 +871,185 @@ func TestSortByClause(t *testing.T) {
 	})
 }
 
-func TestGrainLevelHelpers(t *testing.T) {
-	t.Run("expression grain levels", func(t *testing.T) {
-		a := Analyzer{
-			Identifiers: map[string]IdentifierValue{
-				"scalarstat": {Expr: createExprContext("ben:kills + 1")},
-				"aggstat":    {Expr: createExprContext("average kills")},
+type expressionGrainTestCase struct {
+	expected GrainLevel
+	input    string
+	a        Analyzer
+	name     string
+}
+
+func TestGetExpressionGrainLevel(t *testing.T) {
+
+	testCases := []expressionGrainTestCase{
+		{
+			name:     "Simple aggregate",
+			input:    "kills + 1",
+			expected: GrainAggregate,
+		},
+		{
+			name:     "Simple scope",
+			input:    "ben:kills",
+			expected: GrainScalar,
+		},
+		{
+			name:     "Scope with literal value on right",
+			input:    "ben:kills + 2",
+			expected: GrainScalar,
+		},
+		{
+			name:     "Scope with literal value on left",
+			input:    "2 + ben:kills",
+			expected: GrainScalar,
+		},
+		{
+			name:     "Nested scope",
+			input:    "(ben: kills + 1) * 2",
+			expected: GrainScalar,
+		},
+		{
+			name:     "Deeply parentheszied scope",
+			input:    "((ben:kills))",
+			expected: GrainScalar,
+		},
+		{
+			name:     "Aggregate function",
+			input:    "average kills",
+			expected: GrainAggregate,
+		},
+		{
+			name:  "Coarse grain identifier",
+			input: "coarse",
+			a: Analyzer{
+				Grain:       Grain{BaseDimension: TeamDimension},
+				Identifiers: map[string]IdentifierValue{"coarse": {Expr: createExprContext("ben:kills + 30")}},
 			},
-		}
-
-		if got := a.getExpressionGrainLevel(createExprContext("kills + 1")); got != GrainAggregate {
-			t.Errorf("Expected GrainAggregate, got %v", got)
-		}
-		if got := a.getExpressionGrainLevel(createExprContext("ben:kills")); got != GrainScalar {
-			t.Errorf("Expected GrainScalar, got %v", got)
-		}
-		if got := a.getExpressionGrainLevel(createExprContext("ben:kills + 1")); got != GrainScalar {
-			t.Errorf("Expected GrainScalar, got %v", got)
-		}
-		if got := a.getExpressionGrainLevel(createExprContext("1 + ben:kills")); got != GrainScalar {
-			t.Errorf("Expected GrainScalar for right-hand side scoped expression, got %v", got)
-		}
-		if got := a.getExpressionGrainLevel(createExprContext("(ben:kills + 1) * 2")); got != GrainScalar {
-			t.Errorf("Expected GrainScalar for nested scoped expression, got %v", got)
-		}
-		if got := a.getExpressionGrainLevel(createExprContext("((ben:kills))")); got != GrainScalar {
-			t.Errorf("Expected GrainScalar for deeply parenthesized scoped expression, got %v", got)
-		}
-		if got := a.getExpressionGrainLevel(createExprContext("average kills")); got != GrainAggregate {
-			t.Errorf("Expected GrainAggregate, got %v", got)
-		}
-		if got := a.getExpressionGrainLevel(createExprContext("scalarstat")); got != GrainScalar {
-			t.Errorf("Expected GrainScalar for resolved scalar identifier, got %v", got)
-		}
-		if got := a.getExpressionGrainLevel(createExprContext("scalarstat * 2")); got != GrainScalar {
-			t.Errorf("Expected GrainScalar for compound expression with scalar identifier, got %v", got)
-		}
-		if got := a.getExpressionGrainLevel(createExprContext("aggstat")); got != GrainAggregate {
-			t.Errorf("Expected GrainAggregate for resolved aggregate identifier, got %v", got)
-		}
-	})
-
-	t.Run("predicate grain levels", func(t *testing.T) {
-		a := Analyzer{
-			Identifiers: map[string]IdentifierValue{
-				"scalarstat": {Expr: createExprContext("ben:kills")},
-				"aggstat":    {Expr: createExprContext("damage")},
+			expected: GrainAggregate,
+		},
+		{
+			name:  "Fine grain identifier",
+			input: "fine",
+			a: Analyzer{
+				Grain:       Grain{BaseDimension: TeamDimension, Refinements: []Dimension{GameDimension}},
+				Identifiers: map[string]IdentifierValue{"fine": {Expr: createExprContext("ben:kills / 2")}},
 			},
-		}
+			expected: GrainScalar,
+		},
+		{
+			name:     "Scope with aggregate function",
+			input:    "ben:average damage",
+			expected: GrainAggregate,
+		},
+		{
+			name:     "Scope with unscoped measure",
+			input:    "ben:damage / damage",
+			expected: GrainAggregate,
+		},
+		{
+			name:     "Aggregate scope with  unscoped measure",
+			input:    "cody:max damage / damage",
+			expected: GrainAggregate,
+		},
+		{
+			name:  "Scope with unscoped measure in game level statement",
+			input: "cody:assists * damage",
+			a: Analyzer{
+				Grain: Grain{BaseDimension: PlayerDimension, Refinements: []Dimension{GameDimension}},
+			},
+			expected: GrainScalar,
+		},
+	}
 
-		if got := a.getPredicateGrainLevel(createPredicateContext("kills > 2")); got != GrainAggregate {
-			t.Errorf("Expected GrainAggregate, got %v", got)
+	for _, testCase := range testCases {
+		got := testCase.a.getExpressionGrainLevel(createExprContext(testCase.input))
+		if got != testCase.expected {
+			t.Errorf("Test Failed: %v. Expected %v, got %v", testCase.name, testCase.expected, got)
 		}
-		if got := a.getPredicateGrainLevel(createPredicateContext("ben:kills > 2")); got != GrainScalar {
-			t.Errorf("Expected GrainScalar for left-hand side scope comparison, got %v", got)
+	}
+}
+
+type predicateGrainTestCase struct {
+	expected GrainLevel
+	input    string
+	a        Analyzer
+	name     string
+}
+
+func TestGetPredicateGrainLevel(t *testing.T) {
+	testCases := []predicateGrainTestCase{
+		{
+			name:     "Aggregate",
+			input:    "kills > 2",
+			expected: GrainAggregate,
+		},
+		{
+			name:     "Scalar for left-hand side scope comparison",
+			input:    "ben:kills > 2",
+			expected: GrainScalar,
+		},
+		{
+			name:     "Unscoped and scoped measure",
+			input:    "kills > ben:kills",
+			expected: GrainAggregate,
+		},
+		{
+			name:     "Aggregate AND",
+			input:    "kills > 2 and damage < 100",
+			expected: GrainAggregate,
+		},
+		{
+			name:     "Scalar for left-hand side scalar AND",
+			input:    "ben:kills > 2 and damage < 100",
+			expected: GrainScalar,
+		},
+		{
+			name:     "Scalar for right-hand side scalar AND",
+			input:    "kills > 2 and ben:damage < 100",
+			expected: GrainScalar,
+		},
+		{
+			name:     "Scalar for left-hand side scalar OR",
+			input:    "ben:kills > 2 or damage < 100",
+			expected: GrainScalar,
+		},
+		{
+			name:     "Scalar for right-hand side scalar OR",
+			input:    "damage < 100 or ben:kills > 2",
+			expected: GrainScalar,
+		},
+		{
+			name:     "Scalar for NOT scoped comparison",
+			input:    "not (ben:kills > 2)",
+			expected: GrainScalar,
+		},
+		{
+			name:  "Idenitifier in game level statement",
+			input: "scalarstat > 2",
+			a: Analyzer{
+				Identifiers: map[string]IdentifierValue{
+					"aggstat": {Expr: createExprContext("damage")},
+				},
+				Grain: Grain{BaseDimension: TeamDimension, Refinements: []Dimension{GameDimension}},
+			},
+			expected: GrainScalar,
+		},
+		{
+			name:  "Identifier in aggregate statement",
+			input: "aggstat > 2",
+			a: Analyzer{
+				Identifiers: map[string]IdentifierValue{
+					"aggstat": {Expr: createExprContext("damage")},
+				},
+			},
+			expected: GrainAggregate,
+		},
+	}
+
+	for _, testCase := range testCases {
+		got := testCase.a.getPredicateGrainLevel(createPredicateContext(testCase.input))
+		if got != testCase.expected {
+			t.Errorf("Test Failed: %v. Expected %v, got %v", testCase.name, testCase.expected, got)
 		}
-		if got := a.getPredicateGrainLevel(createPredicateContext("kills > ben:kills")); got != GrainScalar {
-			t.Errorf("Expected GrainScalar for right-hand side scope comparison, got %v", got)
-		}
-		if got := a.getPredicateGrainLevel(createPredicateContext("kills > 2 and damage < 100")); got != GrainAggregate {
-			t.Errorf("Expected GrainAggregate, got %v", got)
-		}
-		if got := a.getPredicateGrainLevel(createPredicateContext("ben:kills > 2 and damage < 100")); got != GrainScalar {
-			t.Errorf("Expected GrainScalar for left-hand side scalar AND, got %v", got)
-		}
-		if got := a.getPredicateGrainLevel(createPredicateContext("kills > 2 and ben:damage < 100")); got != GrainScalar {
-			t.Errorf("Expected GrainScalar for right-hand side scalar AND, got %v", got)
-		}
-		if got := a.getPredicateGrainLevel(createPredicateContext("ben:kills > 2 or damage < 100")); got != GrainScalar {
-			t.Errorf("Expected GrainScalar for left-hand side scalar OR, got %v", got)
-		}
-		if got := a.getPredicateGrainLevel(createPredicateContext("damage < 100 or ben:kills > 2")); got != GrainScalar {
-			t.Errorf("Expected GrainScalar for right-hand side scalar OR, got %v", got)
-		}
-		if got := a.getPredicateGrainLevel(createPredicateContext("not (ben:kills > 2)")); got != GrainScalar {
-			t.Errorf("Expected GrainScalar for NOT scoped comparison, got %v", got)
-		}
-		if got := a.getPredicateGrainLevel(createPredicateContext("scalarstat > 2")); got != GrainScalar {
-			t.Errorf("Expected GrainScalar for comparison with resolved scalar identifier, got %v", got)
-		}
-		if got := a.getPredicateGrainLevel(createPredicateContext("aggstat > 2")); got != GrainAggregate {
-			t.Errorf("Expected GrainAggregate for comparison with resolved aggregate identifier, got %v", got)
-		}
-	})
+	}
 }
 
 type statementTestCase struct {
